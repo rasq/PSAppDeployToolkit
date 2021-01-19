@@ -1,3 +1,15 @@
+# ADT customized and automated.
+
+This version of ADT is a fully funtional, cleaned and with additional features version.
+It doesnt need to be used like standard version, instead user can prepare .yaml config file with package description.
+Coding, cripting are not requred prior to use it.
+
+### Original Readme is located below.
+
+
+
+
+
 # ![PowerShell App Deployment Toolkit Logo](AppDeployToolkitLogo.png) PowerShell App Deployment Toolkit
 
 ### What is the PowerShell App Deployment Toolkit?
