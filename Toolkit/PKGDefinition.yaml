@@ -2,9 +2,9 @@
  properties:
   ClientName: ""
   PKGName: ""
-  mainPKGGUID: ""
-  killProcessesInstall: ""
-  killProcessesUninstall: ""
+  #mainPKGGUID: ""
+  #killProcessesInstall: ""
+  #killProcessesUninstall: ""
   FriendlyProcessName: ""
   blnRebootNeeded: ""
   LanguagesToUse: ""
@@ -22,8 +22,8 @@
   deployAppScriptFriendlyName: "Deploy Application" 
   deployAppScriptVersion: "3.8.3" 
   deployAppScriptDate: "30/09/2020" 
- preinstallation:
-  app_1:
+ preInstallation:
+  msi_1:
     action: "ADD"
     appName: "testApp"
     appVer: "1.0.0"
@@ -31,7 +31,7 @@
     mstFile: "app.mst"
     mspFile: "app.msp"
     params: ""
-  app_2:
+  exe_1:
     action: "REMOVE"
     appName: "testApp1"
     appVer: "1.0.0"

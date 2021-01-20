@@ -84,6 +84,8 @@ Param (
   Add-Type -Path "$PSScriptRoot\AppDeployToolkit\PSYaml\lib\YamlDotNet.dll"
 
   #Dot source the files
+  . "$scriptDirectory\AppDeployToolkit\AppDeployToolkitExtended.ps1"
+  
   Foreach ($import in @($Public + $Private)) {
       Try {
           . $import.fullname
@@ -183,7 +185,7 @@ Param (
 		##*===============================================
 		##* PRE-INSTALLATION
 		##*===============================================
-		[string]$installPhase = 'Pre-Installation'
+    [string]$installPhase = 'Pre-Installation'
 
 		## Show Welcome Message, close Internet Explorer if required, allow up to 3 deferrals, verify there is enough disk space to complete the install, and persist the prompt
 		Show-InstallationWelcome -CloseApps 'iexplore' -AllowDefer -DeferTimes 3 -CheckDiskSpace -PersistPrompt
@@ -191,7 +193,9 @@ Param (
 		## Show Progress Message (with the default message)
 		Show-InstallationProgress
 
-		## <Perform Pre-Installation tasks here>
+    ## <Perform Pre-Installation tasks here>
+    
+    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.preInstallation
 
 
 		##*===============================================
@@ -206,6 +210,8 @@ Param (
 		}
 
 		## <Perform Installation tasks here>
+    
+    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.installation
 
 
 		##*===============================================
@@ -214,6 +220,8 @@ Param (
 		[string]$installPhase = 'Post-Installation'
 
 		## <Perform Post-Installation tasks here>
+    
+    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.postInstallation
 
 		## Display a message at the end of the install
 		If (-not $useDefaultMsi) { Show-InstallationPrompt -Message 'You can customize text to appear at the end of an install or remove it completely for unattended installations.' -ButtonRightText 'OK' -Icon Information -NoWait }
@@ -230,6 +238,8 @@ Param (
 		Show-InstallationProgress
 
 		## <Perform Pre-Uninstallation tasks here>
+    
+    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.preUninstallation
 
 
 		##*===============================================
@@ -244,6 +254,8 @@ Param (
 		}
 
 		# <Perform Uninstallation tasks here>
+    
+    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.uninstallation
 
 
 		##*===============================================
@@ -252,6 +264,8 @@ Param (
 		[string]$installPhase = 'Post-Uninstallation'
 
 		## <Perform Post-Uninstallation tasks here>
+    
+    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.postUninstallation
 
 	} ElseIf ($deploymentType -ieq 'Repair') {
 		##*===============================================
@@ -263,6 +277,8 @@ Param (
 		Show-InstallationProgress
 
 		## <Perform Pre-Repair tasks here>
+    
+    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.preRepair
 
 		##*===============================================
 		##* REPAIR
@@ -275,6 +291,8 @@ Param (
 			Execute-MSI @ExecuteDefaultMSISplat
 		}
 		# <Perform Repair tasks here>
+    
+    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.repair
 
 		##*===============================================
 		##* POST-REPAIR
@@ -282,9 +300,11 @@ Param (
 		[string]$installPhase = 'Post-Repair'
 
 		## <Perform Post-Repair tasks here>
+    
+    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.postRepair
 
 
-    }
+  }
 	##*===============================================
 	##* END SCRIPT BODY
 	##*===============================================
