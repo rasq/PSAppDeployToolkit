@@ -64,7 +64,6 @@ Param (
 ##* VARIABLE DECLARATION
 ##*=============================================
 #region VariableDeclaration
-
 ## Variables: Toolkit Name
 [string]$appDeployToolkitName = 'PSAppDeployToolkit'
 [string]$appDeployMainScriptFriendlyName = 'App Deploy Toolkit Main'

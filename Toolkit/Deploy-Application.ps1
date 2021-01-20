@@ -53,27 +53,96 @@ Param (
 	[switch]$DisableLogging = $false
 )
 
-Try {
+#Try {  
+  Function Set-ADTVariable {
+    param(
+        [Parameter(Mandatory = $True)]
+        [AllowEmptyString()]
+        [String]$YamlData,
+        [Parameter(Mandatory = $True)]
+        [AllowEmptyString()]
+        [String]$DefaultValue
+    )
+
+    if (-not ([string]::IsNullOrEmpty($YamlData))) { $tmpValue = $YamlData } 
+    else { $YamlData = $DefaultValue }
+
+    Return $tmpValue
+  } 
+
 	## Set the script execution policy for this process
 	Try { Set-ExecutionPolicy -ExecutionPolicy 'ByPass' -Scope 'Process' -Force -ErrorAction 'Stop' } Catch {}
+	
+	If (Test-Path -LiteralPath 'variable:HostInvocation') { $InvocationInfo = $HostInvocation } Else { $InvocationInfo = $MyInvocation }
+	[string]$scriptDirectory = Split-Path -Path $InvocationInfo.MyCommand.Definition -Parent
+  
+  ## Import YAML modules
+  #Get public and private function definition files.
+  $Public  = @( Get-ChildItem -Path $PSScriptRoot\AppDeployToolkit\PSYaml\Public\*.ps1 -ErrorAction SilentlyContinue )
+  $Private = @( Get-ChildItem -Path $PSScriptRoot\AppDeployToolkit\PSYaml\Private\*.ps1 -ErrorAction SilentlyContinue )
+
+  Add-Type -Path "$PSScriptRoot\AppDeployToolkit\PSYaml\lib\YamlDotNet.dll"
+
+  #Dot source the files
+  Foreach ($import in @($Public + $Private)) {
+      Try {
+          . $import.fullname
+      } Catch { Write-Error -Message "Failed to import function $($import.fullname): $_" }
+  }
+
+  $yamlFile = "$scriptDirectory\PKGDefinition.yaml"
+
+  if (Test-Path -LiteralPath $yamlFile) {
+    $yamlString = [System.IO.File]::ReadAllText($yamlFile)
+    $stringReader = new-object System.IO.StringReader($yamlString)
+    $yamlStream = New-Object YamlDotNet.RepresentationModel.YamlStream
+    $yamlStream.Load([System.IO.TextReader]$stringReader)
+    $YamlObject = ConvertFrom-YAMLDocument ($yamlStream.Documents[0])
+    [bool]$isYaml = $True 
+  } else { [bool]$isYaml = $False }
+
 
 	##*===============================================
 	##* VARIABLE DECLARATION
 	##*===============================================
-	## Variables: Application
-	[string]$appVendor = ''
-	[string]$appName = ''
-	[string]$appVersion = ''
-	[string]$appArch = ''
-	[string]$appLang = 'EN'
-	[string]$appRevision = '01'
-	[string]$appScriptVersion = '1.0.0'
-	[string]$appScriptDate = 'XX/XX/20XX'
-	[string]$appScriptAuthor = '<author name>'
+  ## Variables: Application
+  [string]$Global:TmpDeployMode = 'null'
+  [string]$ClientName = Set-ADTVariable -YamlData $YamlObject.properties.ClientName -DefaultValue ''
+  [string]$PKGName = Set-ADTVariable -YamlData $YamlObject.properties.PKGName -DefaultValue ''
+  
+    if ([string]::IsNullOrWhitespace($ClientName) -or ($ClientName -eq "") -or ($null -eq $ClientName)) {
+			$Global:clientBasedBP = $False	
+			if ($DeployMode -eq 'null') { $DeployMode = 'Silent' }
+		} else { 
+			If ($DeployMode -eq 'null') { 
+				$Global:TmpDeployMode = 'Interactive' 
+				$DeployMode = 'Silent' 
+			} else { $Global:TmpDeployMode = $DeployMode } 
+			$Global:clientBasedBP = $True	
+			Set-AccountBP -CN $ClientName
+		}
+
+  [string]$mainPKGGUID = Set-ADTVariable -YamlData $YamlObject.properties.mainPKGGUID -DefaultValue ''
+
+  [string]$killProcessesInstall = Set-ADTVariable -YamlData $YamlObject.properties.killProcessesInstall -DefaultValue ''
+  [string]$killProcessesUninstall = Set-ADTVariable -YamlData $YamlObject.properties.killProcessesUninstall -DefaultValue ''
+  [string]$FriendlyProcessName = Set-ADTVariable -YamlData $YamlObject.properties.FriendlyProcessName -DefaultValue ''
+  [string]$blnRebootNeeded = Set-ADTVariable -YamlData $YamlObject.properties.blnRebootNeeded -DefaultValue ''
+  [string]$LanguagesToUse = Set-ADTVariable -YamlData $YamlObject.properties.LanguagesToUse -DefaultValue ''
+
+  [string]$appVendor = Set-ADTVariable -YamlData $YamlObject.properties.appVendor -DefaultValue ''
+  [string]$appName = Set-ADTVariable -YamlData $YamlObject.properties.appName -DefaultValue ''
+  [string]$appVersion = Set-ADTVariable -YamlData $YamlObject.properties.appVersion -DefaultValue ''
+  [string]$appArch = Set-ADTVariable -YamlData $YamlObject.properties.appArch -DefaultValue ''
+  [string]$appLang = Set-ADTVariable -YamlData $YamlObject.properties.appLang -DefaultValue 'EN'
+  [string]$appRevision = Set-ADTVariable -YamlData $YamlObject.properties.appRevision -DefaultValue '01'
+  [string]$appScriptVersion = Set-ADTVariable -YamlData $YamlObject.properties.appScriptVersion -DefaultValue '1.0.0'
+  [string]$appScriptDate = Set-ADTVariable -YamlData $YamlObject.properties.appScriptDate -DefaultValue 'XX/XX/20XX'
+  [string]$appScriptAuthor = Set-ADTVariable -YamlData $YamlObject.properties.appScriptAuthor -DefaultValue '<author name>'
 	##*===============================================
 	## Variables: Install Titles (Only set here to override defaults set by the toolkit)
-	[string]$installName = ''
-	[string]$installTitle = ''
+  [string]$installName = Set-ADTVariable -YamlData $YamlObject.properties.installName -DefaultValue ''
+  [string]$installTitle = Set-ADTVariable -YamlData $YamlObject.properties.installTitle -DefaultValue ''
 
 	##* Do not modify section below
 	#region DoNotModify
@@ -82,9 +151,9 @@ Try {
 	[int32]$mainExitCode = 0
 
 	## Variables: Script
-	[string]$deployAppScriptFriendlyName = 'Deploy Application'
-	[version]$deployAppScriptVersion = [version]'3.8.3'
-	[string]$deployAppScriptDate = '30/09/2020'
+  [string]$deployAppScriptFriendlyName = Set-ADTVariable -YamlData $YamlObject.properties.deployAppScriptFriendlyName -DefaultValue 'Deploy Application'
+  [string]$deployAppScriptVersion = Set-ADTVariable -YamlData $YamlObject.properties.deployAppScriptVersion -DefaultValue '3.8.3'
+  [string]$deployAppScriptDate = Set-ADTVariable -YamlData $YamlObject.properties.deployAppScriptDate -DefaultValue '30/09/2020'
 	[hashtable]$deployAppScriptParameters = $psBoundParameters
 
 	## Variables: Environment
@@ -148,9 +217,7 @@ Try {
 
 		## Display a message at the end of the install
 		If (-not $useDefaultMsi) { Show-InstallationPrompt -Message 'You can customize text to appear at the end of an install or remove it completely for unattended installations.' -ButtonRightText 'OK' -Icon Information -NoWait }
-	}
-	ElseIf ($deploymentType -ieq 'Uninstall')
-	{
+	} ElseIf ($deploymentType -ieq 'Uninstall') {
 		##*===============================================
 		##* PRE-UNINSTALLATION
 		##*===============================================
@@ -186,10 +253,7 @@ Try {
 
 		## <Perform Post-Uninstallation tasks here>
 
-
-	}
-	ElseIf ($deploymentType -ieq 'Repair')
-	{
+	} ElseIf ($deploymentType -ieq 'Repair') {
 		##*===============================================
 		##* PRE-REPAIR
 		##*===============================================
@@ -227,11 +291,11 @@ Try {
 
 	## Call the Exit-Script function to perform final cleanup operations
 	Exit-Script -ExitCode $mainExitCode
-}
-Catch {
-	[int32]$mainExitCode = 60001
-	[string]$mainErrorMessage = "$(Resolve-Error)"
-	Write-Log -Message $mainErrorMessage -Severity 3 -Source $deployAppScriptFriendlyName
-	Show-DialogBox -Text $mainErrorMessage -Icon 'Stop'
-	Exit-Script -ExitCode $mainExitCode
-}
+#}
+#Catch {
+#	[int32]$mainExitCode = 60001
+#	[string]$mainErrorMessage = "$(Resolve-Error)"
+#	Write-Log -Message $mainErrorMessage -Severity 3 -Source $deployAppScriptFriendlyName
+#	Show-DialogBox -Text $mainErrorMessage -Icon 'Stop'
+#	Exit-Script -ExitCode $mainExitCode
+#}
