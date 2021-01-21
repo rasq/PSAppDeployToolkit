@@ -30,6 +30,8 @@
     msiFile: "app.msi"
     mstFile: "app.mst"
     mspFile: "app.msp"
+    GUID: "appFromReg"
+    processName: "adf.vbs"
     params: ""
   exe_1:
     action: "REMOVE"
@@ -38,3 +40,15 @@
     exeFile: "app.exe"
     GUID: "appFromReg"
     params: ""
+  file_1:
+    action: "REMOVE"
+    inPath: "c:\\"
+    outPath: "c:\\test\\"
+    fileName: "app.exe"
+    force: "false"
+  directory_1:
+    action: "REMOVE"
+    targetDir: "c:\\asd"
+    sourceDir: "c:\\test\\"
+    force: "false"
+    mode: "recursively"

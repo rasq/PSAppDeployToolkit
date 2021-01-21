@@ -64,10 +64,10 @@ Param (
         [String]$DefaultValue
     )
 
-    if (-not ([string]::IsNullOrEmpty($YamlData))) { $tmpValue = $YamlData } 
-    else { $YamlData = $DefaultValue }
+    if (-not ([string]::IsNullOrEmpty($YamlData))) { $variableValue = $YamlData } 
+    else { $variableValue = $DefaultValue }
 
-    Return $tmpValue
+    Return $variableValue
   } 
 
 	## Set the script execution policy for this process
