@@ -1,9 +1,9 @@
 $Global:PSScriptRoot            = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
 $Global:ParentScriptRoot        = Split-Path $PSScriptRoot -Parent
 
-$Global:ConfigFilesPath         = $ParentScriptRoot + "\_ConfigFiles"
-$Global:PrerequisitesPath       = $ParentScriptRoot + "\_Prerequisites"
-$Global:SourcePath              = $ParentScriptRoot + "\_Source"
+$Global:ConfigFilesPath         = $ParentScriptRoot + "\Sources\ConfigFiles"
+$Global:PrerequisitesPath       = $ParentScriptRoot + "\Sources\Prerequisites"
+$Global:SourcePath              = $ParentScriptRoot + "\Sources"
 $Global:ProgramData             = $env:ProgramData
 $Global:ProgramFiles64          = $env:ProgramFiles
 $Global:ProgramFiles            = ${env:ProgramFiles(x86)}
@@ -34,8 +34,39 @@ Function Set-YAMLActions {
         $actionDate = $yamlData.$name
         if ($name -like "msi_*") { Set-MSI -actionDate $actionDate }
         if ($name -like "exe_*") { Set-EXE -actionDate $actionDate }
-        if ($name -like "file_*") { }
-        if ($name -like "directory_*") { }
+        if ($name -like "file_*") { Set-File -actionDate $actionDate }
+        if ($name -like "directory_*") { Set-Directory -actionDate $actionDate }
+        if ($name -like "service_*") { Set-Service -actionDate $actionDate }
+        if ($name -like "registry_*") { Set-Registry-actionDate $actionDate }
+        if ($name -like "process_*") { Set-Process -actionDate $actionDate }
+        if ($name -like "sleep_*") { Set-Sleep -actionDate $actionDate }
+        if ($name -like "script_*") { Set-Script -actionDate $actionDate }
+        if ($name -like "archive_*") { Set-Archive -actionDate $actionDate }
+        if ($name -like "winfeature_*") { Set-WinFeature -actionDate $actionDate }
+        if ($name -like "systemsettings_*") { Set-SysSettings -actionDate $actionDate }
+        if ($name -like "dll_*") { Set-DLL -actionDate $actionDate }
+
+    <# if (($Name -eq "DetectionMethod") -or ($Name -eq "DM")) { $RC = Set-DetectionMethod -actionName $Action -Data $Data -DataType $DataType } 
+    if ($Name -eq "MSIInTune") { $RC = Set-MSIInTune -actionName $Action -Data $Data -DataType $DataType}
+    if ($Name -eq "MSIInTuneMA") { $RC = Set-MSIInTuneMA -actionName $Action -Data $Data -DataType $DataType}
+    if ($Name -eq "APPV") { $RC = Set-AppVAction -actionName $Action -Data $Data } 
+    if ($Name -eq "AppVCG") { $RC = Set-AppVCGAction -actionName $Action -Data $Data } 
+    if ($Name -eq "XMLAppVCG") { $RC = Create-AppVCGXML -actionName $Action -Data $Data } 
+    if ($Name -eq "GETREG") { $RC = Get-Registry -actionName $Action -Data $Data } 
+    if ($Name -eq "MSIVersion") { $RC = Get-MSIVersion -actionName $Action -Data $Data } 
+    if ($Name -eq "DisplayWindow") { $RC = Set-DisplayWindow -actionName $Action -Data $Data } 
+    if ($Name -eq "TAG") { $RC = Set-Tag -actionName $Action -Data $Data }
+    if ($Name -eq "AS") { $RC = Set-ActiveSetupVal -actionName $Action -Data $Data }
+    if ($Name -eq "VAR") { $RC = Set-Vars -actionName $Action -Data $Data }
+    if ($Name -eq "SVAR") { $RC = Set-ScriptVars -actionName $Action -Data $Data }
+    if ($Name -eq "IF") { $RC = Set-If -actionName $Action -Data $Data -actionState $actionName }
+    if ($Name -eq "MSIX") { $RC = Set-MSIX -actionName $Action -Data $Data }
+    if ($Name -eq "PERMISSIONS") { $RC = Set-Permissions -actionName $Action -Data $Data }
+    if ($Name -eq "OFFICE") { $RC = Set-Office -actionName $Action -Data $Data -DataType $DataType }
+    if ($Name -eq "UNBLOCKFILE") { $RC = Set-UnblockFiles -actionName $Action -Data $Data }
+    if ($Name -eq "SCHEDULEDTASK") { $RC = Set-ScheduledTask -actionName $Action -Data $Data }
+    if ($Name -eq "PINNEDAPPS") { $RC = Set-PinnedApps -actionName $Action -Data $Data }
+    if ($Name -eq "LNK") { $RC = Set-Lnk -actionName $Action -Data $Data } #>
     }
   } 
 }
@@ -59,7 +90,20 @@ Function Set-MSI {
   processName: "adf.vbs"
   params: "" #>
 
+  #TODO:
+  # - add  process checking durrin install and uninstall
+  # - add version checking durring ADD if version prowided
+
   Write-Log -Message "Starting: $($MyInvocation.MyCommand)/$($actionDate.appName)." -Source $deployAppScriptFriendlyName
+
+  $appName = $actionDate.appName
+  $appVer = $actionDate.appVer
+  $msiFile = $actionDate.msiFile
+  $mstFile = $actionDate.mstFile
+  $mspFile = $actionDate.mspFile
+  $GUID = $actionDate.GUID
+  $processName = $actionDate.processName
+  $params = $actionDate.params
 
   $msiFile = Set-FullStringsFromVars -VarToCheck $msiFile
   $mstFile = Set-FullStringsFromVars -VarToCheck $mstFile
@@ -89,24 +133,26 @@ Function Set-MSI {
         
         if ($CurrentMSIGUID -eq $regGUID) {
           Write-Log -Message "Uninstalling $CurrentMSIGUID." -Source $deployAppScriptFriendlyName	
-          Remove-MSIApplications -Name $CurrentMSIGUID -LogNameV $PKGName
+          Remove-MSIApplications -Name $CurrentMSIGUID -LogNameV "$CurrentMSIGUID-uninstall"
         }
 
-        if ($msiFiles.Length -eq $appNames.Length) { $logName = $appNames[$x] }
-        else { $logName = $CurrentMSIGUID }
+        if ($msiFiles.Length -eq $appNames.Length) { $logTagName = $appNames[$x] }
+        else { $logTagName = $CurrentMSIGUID }
 
         if ($msiFiles.Length -eq $mstFile.Length) {
-          if ($msiFiles.Length -eq $allParams.Length) { Execute-MSI -Action 'Install' "$msi" -Transform "$($mstFiles[$x])" -LogNameV "$logName" -AddParameters "$($allParams[$x])" }
-          else { Execute-MSI -Action 'Install' "$msi" -Transform "$($mstFiles[$x])" -LogNameV "$logName" }
+          if ($msiFiles.Length -eq $allParams.Length) { Execute-MSI -Action 'Install' "$msi" -Transform "$($mstFiles[$x])" -LogNameV "$logTagName" -AddParameters "$($allParams[$x])" }
+          else { Execute-MSI -Action 'Install' "$msi" -Transform "$($mstFiles[$x])" -LogNameV "$logTagName" }
         } else { 
-          if ($msiFiles.Length -eq $allParams.Length) { Execute-MSI -Action 'Install' "$msi" -LogNameV "$logName" -AddParameters "$($allParams[$x])" }
-          else { Execute-MSI -Action 'Install' "$msi" -LogNameV "$logName" }
+          if ($msiFiles.Length -eq $allParams.Length) { Execute-MSI -Action 'Install' "$msi" -LogNameV "$logTagName" -AddParameters "$($allParams[$x])" }
+          else { Execute-MSI -Action 'Install' "$msi" -LogNameV "$logTagName" }
         }
         
         if ($msiFiles.Length -eq $mspFiles.Length) { 
           Test-IfParamFileExist -path $mspFiles[$x]
           Execute-MSP -Path "$($mspFiles[$x])" 
         }
+
+        Set-Tags -actionDate "$logTagName"
         $x++
       }
     } elseif (($mspFiles.Length -gt 0) -and ($mspFiles[0] -ne "") -and ($null -ne $mspFiles[0])) { 
@@ -117,7 +163,47 @@ Function Set-MSI {
     }
  
   } elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
+    $GUIDs = Get-MultiData -SrcData $GUID
+    $appsVer = Get-MultiData -SrcData $appVer
 
+    $allParams = Get-MultiData -SrcData $params -Delimeter "|"
+    $appNames = Get-MultiData -SrcData $appName
+
+    if (($GUIDs.Length -gt 0) -and ($GUIDs[0] -ne "") -and ($null -ne $GUIDs[0])) { 
+      $x = 0
+      foreach($app in $GUIDs) { 
+        if (Test-IsGuid -ObjectGuid $app) {
+          if ($GUIDs.Length -eq $appNames.Length) { 
+            if ($GUIDs.Length -eq $allParams.Length) { Execute-MSI -Action 'Uninstall' -Path "$app" -AddParameters "$($allParams[$x])" -LogName $appNames[$x] }
+            else { Execute-MSI -Action 'Uninstall' -Path "$app" -LogName $appNames[$x] }
+          } else { 
+            if ($GUIDs.Length -eq $allParams.Length) { Execute-MSI -Action 'Uninstall' -Path "$app" -AddParameters "$($allParams[$x])" }
+            else { Execute-MSI -Action 'Uninstall' -Path "$app" }
+          }
+        } else {
+          if ($GUIDs.Length -eq $appNames.Length) { 
+            if ($GUIDs.Length -eq $allParams.Length) { 
+              if ($GUIDs.Length -eq $appsVer.Length) { Remove-MSIApplications -Name $app -LogNameV $appNames[$x] -AddParameters "$($allParams[$x])" -FilterApplication ('DisplayVersion', $appsVer[$x], 'Exact') }
+              else { Remove-MSIApplications -Name $app -LogNameV $appNames[$x] -AddParameters "$($allParams[$x])" }
+            } else { 
+              if ($GUIDs.Length -eq $appsVer.Length) { Remove-MSIApplications -Name $app -LogNameV $appNames[$x] -FilterApplication ('DisplayVersion', $appsVer[$x], 'Exact') }
+              else { Remove-MSIApplications -Name $app -LogNameV $appNames[$x] }
+            }
+          } else {
+            if ($GUIDs.Length -eq $allParams.Length) { 
+              if ($GUIDs.Length -eq $appsVer.Length) { Remove-MSIApplications -Name $app -AddParameters "$($allParams[$x])" -FilterApplication ('DisplayVersion', $appsVer[$x], 'Exact') }
+              else { Remove-MSIApplications -Name $app -AddParameters "$($allParams[$x])" }
+            } else { 
+              if ($GUIDs.Length -eq $appsVer.Length) { Remove-MSIApplications -Name $app -FilterApplication ('DisplayVersion', $appsVer[$x], 'Exact') }
+              else { Remove-MSIApplications -Name $app }
+            }
+          }
+        }
+
+        if ($GUIDs.Length -eq $appNames.Length) { Set-Tags -actionDate $appNames[$x] }
+        $x++
+      }
+    }
   } else {
     Write-Log -Message "Script failed, missing or bad ACTION parameter in $($MyInvocation.MyCommand)/$($actionDate.appName)" -Severity 3 -Source $deployAppScriptFriendlyName
     Exit-Script -ExitCode $Global:RCMissingParameter
@@ -137,6 +223,85 @@ Function Set-EXE {
   If ($actionDate.action.ToUpper() -eq "ADD") {
   } elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
   }
+  
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-File {
+  param(
+      [Parameter(Mandatory = $True)]
+      $actionDate
+  )
+
+  If ($actionDate.action.ToUpper() -eq "ADD") {
+  } elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
+  } elseif ($actionDate.action.ToUpper() -eq "COPY") {
+  } elseif ($actionDate.action.ToUpper() -eq "MOVE") {
+  } elseif ($actionDate.action.ToUpper() -eq "EDIT") {
+  }
+  
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-Directory {
+  param(
+      [Parameter(Mandatory = $True)]
+      $actionDate
+  )
+
+  If ($actionDate.action.ToUpper() -eq "ADD") {
+  } elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
+  } elseif ($actionDate.action.ToUpper() -eq "COPY") {
+  } elseif ($actionDate.action.ToUpper() -eq "MOVE") {
+  }
+  
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-Script {
+  param(
+      [Parameter(Mandatory = $True)]
+      $actionDate
+  )
+
+  <# script_1:
+    scriptName: "script.ps1"
+    scriptDir: "c:\\asd"
+    scriptParam: "-uninstall true" #>
+  
+  Write-Log -Message "Starting: $($MyInvocation.MyCommand)/$($actionDate.appName)." -Source $deployAppScriptFriendlyName
+
+    $scriptName = Get-MultiData -SrcData $scriptName
+    $scriptDir = Get-MultiData -SrcData $scriptDir
+    $scriptParam = Get-MultiData -SrcData $scriptParam
+
+  if (($scriptName.Length -gt 0) -and ($msiFiles[0] -ne "") -and ($null -ne $msiFiles[0])) { 
+    $x = 0
+    foreach($msi in $msiFiles) { 
+    }
+  } else {
+    Write-Log -Message "Script failed, missing or bad scriptName parameter in $($MyInvocation.MyCommand)" -Severity 3 -Source $deployAppScriptFriendlyName
+    Exit-Script -ExitCode $Global:RCMissingParameter
+  }
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-Tags {
+  param(
+      [Parameter(Mandatory = $True)]
+      $actionDate,
+      [Parameter(Mandatory = $False)]
+      $Action = "ADD"
+  )
+
   
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -252,5 +417,20 @@ Function Test-IfParamFileExist {
     elseif (([System.IO.File]::Exists($path)) -eq $True) { Write-Log -Message "File: $path exist, going next."; Return $True }
     elseif ("null" -eq $path) { Write-Log -Message "Skipping param, is null."; Return $True }
     else { Write-Log -Message "$path missing, exiting script with RC = -1."; Set-Finalize -ExitCode -1 }
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function Test-IsGuid {
+  [OutputType([bool])]
+  param (
+    [Parameter(Mandatory = $true)]
+    [string]$ObjectGuid
+  )
+  
+  [regex]$guidRegex = '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$'
+  
+  return $ObjectGuid -match $guidRegex
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

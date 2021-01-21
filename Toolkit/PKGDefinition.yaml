@@ -52,3 +52,8 @@
     sourceDir: "c:\\test\\"
     force: "false"
     mode: "recursively"
+ installation:
+  script_1:
+    scriptName: "script.ps1"
+    scriptDir: "c:\\asd"
+    scriptParam: "-uninstall true"
