@@ -33,25 +33,26 @@ Function Set-YAMLActions {
         $name = $_
         $actionDate = $yamlData.$name
         if ($name -like "msi_*") { Set-MSI -actionDate $actionDate }
+        if ($name -like "msix_*") { Set-MSIX -actionDate $actionDate }
         if ($name -like "exe_*") { Set-EXE -actionDate $actionDate }
+        if ($name -like "appv_*") { Set-APPV -actionDate $actionDate }
+        if ($name -like "appvCG_*") { Set-APPVCG -actionDate $actionDate }
         if ($name -like "file_*") { Set-File -actionDate $actionDate }
         if ($name -like "directory_*") { Set-Directory -actionDate $actionDate }
         if ($name -like "service_*") { Set-Service -actionDate $actionDate }
         if ($name -like "registry_*") { Set-Registry-actionDate $actionDate }
         if ($name -like "process_*") { Set-Process -actionDate $actionDate }
-        if ($name -like "sleep_*") { Set-Sleep -actionDate $actionDate }
-        if ($name -like "script_*") { Set-Script -actionDate $actionDate }
-        if ($name -like "archive_*") { Set-Archive -actionDate $actionDate }
-        if ($name -like "winfeature_*") { Set-WinFeature -actionDate $actionDate }
+        if ($name -like "sleep_*") { Set-Sleep -actionDate $actionDate }                        #to test, basic logic was done.
+        if ($name -like "script_*") { Set-Script -actionDate $actionDate }                      #to test, basic logic was done.
+        if ($name -like "archive_*") { Set-Archive -actionDate $actionDate }                    #to test, basic logic was done.
+        if ($name -like "winfeature_*") { Set-WinFeature -actionDate $actionDate }              #to test, basic logic was done.
         if ($name -like "systemsettings_*") { Set-SysSettings -actionDate $actionDate }
-        if ($name -like "dll_*") { Set-DLL -actionDate $actionDate }
+        if ($name -like "dll_*") { Set-DLL -actionDate $actionDate }                            #to test, basic logic was done.
+        if ($name -like "unblockfiles_*") { Set-UnblockFiles -actionDate $actionDate }
+        if ($name -like "scheduledtask_*") { Set-ScheduledTask -actionDate $actionDate }
+        if ($name -like "detectionmethod_*") { Set-DetectionMethod -actionDate $actionDate }
 
-    <# if (($Name -eq "DetectionMethod") -or ($Name -eq "DM")) { $RC = Set-DetectionMethod -actionName $Action -Data $Data -DataType $DataType } 
-    if ($Name -eq "MSIInTune") { $RC = Set-MSIInTune -actionName $Action -Data $Data -DataType $DataType}
-    if ($Name -eq "MSIInTuneMA") { $RC = Set-MSIInTuneMA -actionName $Action -Data $Data -DataType $DataType}
-    if ($Name -eq "APPV") { $RC = Set-AppVAction -actionName $Action -Data $Data } 
-    if ($Name -eq "AppVCG") { $RC = Set-AppVCGAction -actionName $Action -Data $Data } 
-    if ($Name -eq "XMLAppVCG") { $RC = Create-AppVCGXML -actionName $Action -Data $Data } 
+    <# 
     if ($Name -eq "GETREG") { $RC = Get-Registry -actionName $Action -Data $Data } 
     if ($Name -eq "MSIVersion") { $RC = Get-MSIVersion -actionName $Action -Data $Data } 
     if ($Name -eq "DisplayWindow") { $RC = Set-DisplayWindow -actionName $Action -Data $Data } 
@@ -60,11 +61,8 @@ Function Set-YAMLActions {
     if ($Name -eq "VAR") { $RC = Set-Vars -actionName $Action -Data $Data }
     if ($Name -eq "SVAR") { $RC = Set-ScriptVars -actionName $Action -Data $Data }
     if ($Name -eq "IF") { $RC = Set-If -actionName $Action -Data $Data -actionState $actionName }
-    if ($Name -eq "MSIX") { $RC = Set-MSIX -actionName $Action -Data $Data }
     if ($Name -eq "PERMISSIONS") { $RC = Set-Permissions -actionName $Action -Data $Data }
     if ($Name -eq "OFFICE") { $RC = Set-Office -actionName $Action -Data $Data -DataType $DataType }
-    if ($Name -eq "UNBLOCKFILE") { $RC = Set-UnblockFiles -actionName $Action -Data $Data }
-    if ($Name -eq "SCHEDULEDTASK") { $RC = Set-ScheduledTask -actionName $Action -Data $Data }
     if ($Name -eq "PINNEDAPPS") { $RC = Set-PinnedApps -actionName $Action -Data $Data }
     if ($Name -eq "LNK") { $RC = Set-Lnk -actionName $Action -Data $Data } #>
     }
@@ -112,7 +110,7 @@ Function Set-MSI {
   $processName = Set-FullStringsFromVars -VarToCheck $processName
   $params = Set-FullStringsFromVars -VarToCheck $params
 
-  If ($actionDate.action.ToUpper() -eq "ADD") {
+  if ($actionDate.action.ToUpper() -eq "ADD") {
     $msiFiles = Get-MultiData -SrcData $msiFile -PreData $SourcePath
     $mstFiles = Get-MultiData -SrcData $mstFile -PreData $SourcePath
     $mspFiles = Get-MultiData -SrcData $mspFile -PreData $SourcePath	
@@ -214,6 +212,130 @@ Function Set-MSI {
 
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-DLL {
+  param(
+      [Parameter(Mandatory = $True)]
+      $actionDate
+  )
+
+  $DllFile = $actionDate.dllFile
+  $DllPath = $actionDate.dllPath
+
+
+  if (($DllFile -ne '') -and (-not ([string]::IsNullOrEmpty($DllFile)))) {
+    $DllPaths = Get-MultiData -SrcData $DllPath
+    $DllFiles = Get-MultiData -SrcData $DllFile
+    $rootDllPath = ""
+
+    if (($DllPaths.Length -eq 1) -and ($DllPaths[0] -ne '') -and (-not ([string]::IsNullOrEmpty($DllPaths[0])))) { $rootDllPath = $DllPaths[0] }
+    
+    foreach ($dll in $DllFiles) {
+      if ($rootDllPath -ne "") { $dllFullPath = "$rootDllPath\$DllFile" }
+      elseif (($DllPaths[$x] -ne '') -and (-not ([string]::IsNullOrEmpty($DllPaths[$x])))) { $dllFullPath = "$($DllPaths[$x])\$DllFile" }
+      Else { $dllFullPath = "$SourcePath\$DllFile" }
+
+      $dllFullPath = Set-FullStringsFromVars -VarToCheck $dllFullPath
+
+      If ($actionDate.action.ToUpper() -eq "REMOVE") { 
+          Test-IfParamFileExist -path $dllFullPath
+          regsvr32 /s /u $dllFullPath 
+      
+          Switch ($LastExitCode) {
+            0 {Write-Log -Message "Unregistration $dllFullPath succeeded. RC = 0."}
+            1 {Write-Log -Message "Unregistration $dllFullPath failed. Invalid argument.RC = 1."}
+            2 {Write-Log -Message "Unregistration $dllFullPath failed. OleInitialize failed. RC = 2."}
+            3 {Write-Log -Message "Unregistration $dllFullPath failed. LoadLibrary failed. RC = 3."}
+            4 {Write-Log -Message "Unregistration $dllFullPath failed. GetProcAdsress failed. RC = 4."}
+            5 {Write-Log -Message "Unregistration $dllFullPath failed. DllUnregisterServer function failed. RC = 5."}
+            Default { Write-Log -Message "Unregistration $dllFullPath status unknown."}
+          }
+      } ElseIf ($actionDate.action.ToUpper() -eq "ADD") { 
+          Test-IfParamFileExist -path $dllFullPath
+          regsvr32 /s $dllFullPath
+          
+          Switch ($LastExitCode) {
+            0 {Write-Log -Message "Registration $dllFullPath succeeded. RC = 0."}
+            1 {Write-Log -Message "Registration failed. Invalid argument. RC = 1."}
+            2 {Write-Log -Message "Registration failed. OleInitialize failed. RC = 2."}
+            3 {Write-Log -Message "Registration failed. LoadLibrary failed. RC = 3."}
+            4 {Write-Log -Message "Registration failed. GetProcAdsress failed. RC = 4."}
+            5 {Write-Log -Message "Registration failed. DllUnregisterServer function failed. RC = 5."}
+            Default { Write-Log -Message "Registration $dllFullPath status unknown."}
+          }
+      } 
+    }
+  } else {
+    Write-Log -Message "Script failed, missing DllFile parameter in $($MyInvocation.MyCommand)" -Severity 3 -Source $deployAppScriptFriendlyName
+    Exit-Script -ExitCode $Global:RCMissingParameter
+  }  
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-Archive {
+  param(
+      [Parameter(Mandatory = $True)]
+      $actionDate
+  )
+
+  #TODO:
+  # - add 7zip and system zip archive and 7zip install dir detection
+
+  $driveLetter = Split-Path -Path "$PSScriptRoot" -Qualifier
+  $discSpace = Get-DiscSpace -drive $driveLetter
+  
+  Write-Log -Message "Current disc space: $discSpace" -Source $deployAppScriptFriendlyName
+
+  $DirPath = $actionDate.path
+  $ArchName = $actionDate.archName
+  $TargetDir = $actionDate.targetPath
+  $ArchType = $actionDate.type
+
+  $DirsPath = Get-MultiData -SrcData $DirPath
+  $ArchsName = Get-MultiData -SrcData $ArchName
+
+  if (($ArchName -ne '') -and (-not ([string]::IsNullOrEmpty($ArchName)))) {
+    If ($actionDate.action.ToUpper() -eq "ADD") {
+      foreach ($dir in $DirsPath) {
+        if ($DirsPath.Length -eq $ArchsName.Length) { $zipName = $ArchsName[$x] }
+        else { $zipName = "$($ArchsName[0])_$x" }
+
+        if ($ArchType -eq "7Z") { }
+        elseif ($ArchType -eq "ZIP") {}
+        elseif ($ArchType -eq "PSZIP") { New-ZipFile -DestinationArchiveDirectoryPath "$TargetDir" -DestinationArchiveFileName "$zipName.zip" -SourceDirectory "$dir" -OverWriteArchive $True }
+      }
+    } elseif ($actionDate.action.ToUpper() -eq "UNPACK") {
+      $TargetDir = Set-FullStringsFromVars -VarToCheck $TargetDir
+
+      foreach ($arch in $ArchsName) {
+        if ($DirsPath.Length -eq $ArchsName.Length) {
+          if (($DirsPath[$x] -eq "") -or ([string]::IsNullOrEmpty($DirsPath[$x]))) { $Directory = $SourcePath  } 
+          else { $Directory = Set-FullStringsFromVars -VarToCheck $DirsPath[$x] }
+        } else { $Directory = $SourcePath }
+
+        $archFullPath = "$Directory\$arch"
+        Test-ParamFile -path $archFullPath
+        Write-Log -Message "ExtractToDirectory($archFullPath, $TargetDir)"
+
+        if ($ArchType -eq "7Z") { 
+          Test-ParamFile -path "C:\Program Files\7-Zip\7z.exe"
+          & "C:\Program Files\7-Zip\7z.exe" x "$archFullPath" -o"$TargetDir" -y  
+        } elseif ($ArchType -eq "ZIP") { 
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          [System.IO.Compression.ZipFile]::ExtractToDirectory("$archFullPath" ,"$TargetDir")
+        } elseif ($ArchType -eq "PSZIP") { Expand-Archive -LiteralPath $archFullPath -DestinationPath "$TargetDir" -Force }
+      }
+    }  
+  } else {
+    Write-Log -Message "Script failed, missing ArchName parameter in $($MyInvocation.MyCommand)" -Severity 3 -Source $deployAppScriptFriendlyName
+    Exit-Script -ExitCode $Global:RCMissingParameter
+  }
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-EXE {
   param(
       [Parameter(Mandatory = $True)]
@@ -223,6 +345,54 @@ Function Set-EXE {
   If ($actionDate.action.ToUpper() -eq "ADD") {
   } elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
   }
+  
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-WinFeature {
+  param(
+      [Parameter(Mandatory = $True)]
+      $actionDate
+  )
+
+    $FeatureName = $actionDate.featureName
+
+    if (($FeatureName -ne '') -and (-not ([string]::IsNullOrEmpty($FeatureName)))) {
+      $FeatureNames = Get-MultiData -SrcData $FeatureName
+
+      foreach ($feature in $FeatureNames) {
+        If ($actionDate.action.ToUpper() -eq "ADD") {
+            Write-Log -Message "Enable-WindowsOptionalFeature -Online -FeatureName $feature -norestart -All"
+            Enable-WindowsOptionalFeature -Online -FeatureName $feature -norestart -all
+        } ElseIf ($actionDate.action.ToUpper() -eq "REMOVE") {   
+            Write-Log -Message "Disable-WindowsOptionalFeature -Online -FeatureName $feature -norestart"
+            Disable-WindowsOptionalFeature -Online -FeatureName $feature -norestart
+        } 
+      }
+    } else {
+      Write-Log -Message "Script failed, missing featureName parameter in $($MyInvocation.MyCommand)" -Severity 3 -Source $deployAppScriptFriendlyName
+      Exit-Script -ExitCode $Global:RCMissingParameter
+    }  
+  }
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+  
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-Sleep {
+  param(
+      [Parameter(Mandatory = $True)]
+      $actionDate
+  )
+
+  $Time = $actionDate.time
+
+  If (($Time -like "*s") -or ($Time -like "*S")) {
+    $Time = $Time.Replace("s","")
+    $Time = $Time.Replace("S","")
+    Start-Sleep -Seconds $Time 
+  } else { Start-Sleep -Milliseconds $Time } 
   
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -253,10 +423,59 @@ Function Set-Directory {
       $actionDate
   )
 
+ <#  directory_1:
+  action: "REMOVE"
+  targetDir: "c:\\asd"
+  force: "true"
+directory_2:
+  action: "ADD"
+  targetDir: "c:\\asd"
+directory_3:
+  action: "COPY"
+  targetDir: "c:\\asd"
+  sourceDir: "c:\\test\\"
+  force: "false"
+  mode: "recursively"
+directory_4:
+  action: "MOVE"
+  targetDir: "c:\\asd"
+  sourceDir: "c:\\test\\"
+  force: "false"
+  mode: "recursively" #>
+
+  $Directory = $actionDate.targetDir
+  $Directory = Set-FullStringsFromVars -VarToCheck $Directory
+  $Dirs = Get-MultiData -SrcData $Directory
+
+  $isForce = $actionDate.force
+  if (($isForce -ne '') -and (-not ([string]::IsNullOrEmpty($isForce)))) { $isAllForce = Get-MultiData -SrcData $isForce }
+
+  $forAllUsers = $False
+  if (($Directory -like "*%allusers%*") -or ($Directory -like "%allusers%*")) { $forAllUsers = $True }
+
   If ($actionDate.action.ToUpper() -eq "ADD") {
+    $x = 0
+    foreach ($dir in $Dirs) {
+      if ($isAllForce.Length -eq $Dirs.Length) { $localForce = $isAllForce[$x] }
+      elseif (($isForce -ne '') -and (-not ([string]::IsNullOrEmpty($isForce)))) { $localForce = $isForce }
+      else { $localForce = $true }
+
+      if ($forAllUsers -eq $True) {
+        ForEach ($User In (Get-WmiObject Win32_UserProfile -F "Special != True" | Select-Object -Expand LocalPath)) {
+            Write-Log -Message "\User\dir - $($User)$dir"
+            $dir = "$User$dir"
+            if (-not(Test-Path $dir -PathType Container)) { New-Item -ItemType Directory -Path $dir -Force:$localForce | Out-Null }
+        }
+      } else { 
+        if (-not(Test-Path $dir -PathType Container)) { New-Item -ItemType Directory -Path $dir -Force:$localForce | Out-Null }
+      }
+
+      $x++
+    }
   } elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
   } elseif ($actionDate.action.ToUpper() -eq "COPY") {
   } elseif ($actionDate.action.ToUpper() -eq "MOVE") {
+  } elseif ($actionDate.action.ToUpper() -eq "RENAME") {
   }
   
 }
@@ -269,11 +488,6 @@ Function Set-Script {
       [Parameter(Mandatory = $True)]
       $actionDate
   )
-
-  <# script_1:
-    scriptName: "script.ps1"
-    scriptDir: "c:\\asd"
-    scriptParam: "-uninstall true" #>
   
   Write-Log -Message "Starting: $($MyInvocation.MyCommand)/$($actionDate.appName)." -Source $deployAppScriptFriendlyName
 
@@ -281,9 +495,51 @@ Function Set-Script {
     $scriptDir = Get-MultiData -SrcData $scriptDir
     $scriptParam = Get-MultiData -SrcData $scriptParam
 
-  if (($scriptName.Length -gt 0) -and ($msiFiles[0] -ne "") -and ($null -ne $msiFiles[0])) { 
+  if (($scriptName.Length -gt 0) -and ($scriptName[0] -ne "") -and ($null -ne $scriptName[0])) { 
     $x = 0
-    foreach($msi in $msiFiles) { 
+
+    foreach($script in $scriptName) { 
+      $script = Set-FullStringsFromVars -VarToCheck $script
+      $scriptDirectory = Set-FullStringsFromVars -VarToCheck $scriptDir[$x]
+      $scriptParameter = Set-FullStringsFromVars -VarToCheck $scriptParam[$x]
+
+      Write-Log -Message "Trying to start: $scriptDirectory\$script $scriptParameter"
+
+      if (($scriptDirectory -eq "") -or ([string]::IsNullOrEmpty($scriptDirectory))) { $scriptPath = "$SourcePath\$script" } 
+      else { $scriptPath = "$scriptDirectory\$script" }
+  
+      Test-ParamFile -path "$scriptPath"
+
+      if ($script.ToLower() -like "*.vbs") {
+        if (($scriptParameter -eq "") -or ([string]::IsNullOrEmpty($scriptParameter))) { 
+          Write-Log -Message "Command to run: $scriptPath"; 
+          & wscript /nologo "$scriptPath" 
+        } else { 
+          Write-Log -Message "Command to run: $scriptPath $scriptParameter"; 
+          & wscript /nologo "$scriptPath" "$scriptParameter" 
+        } 
+      } elseif ($script.ToLower() -like "*.cmd") { 
+        if (($scriptParameter -eq "") -or ([string]::IsNullOrEmpty($scriptParameter))) { 
+          Write-Log -Message "Command to run: $scriptPath"; 
+          Start-Process "$scriptPath" 
+        } else {
+          Write-Log -Message "Command to run: $scriptPath $scriptParameter"; 
+          Start-Process "$scriptPath" "$scriptParameter" 
+        }
+      } elseif ($script.ToLower() -like "*.ps1") { 
+        if (($scriptParameter -eq "") -or ([string]::IsNullOrEmpty($scriptParameter))) { 
+          Write-Log -Message "Command to run: $scriptPath"; 
+          Invoke-Expression "& '$scriptPath'" 
+        } else { 
+          Write-Log -Message "Command to run: $scriptPath $scriptParameter"; 
+          Invoke-Expression "& '$scriptPath'" "$scriptParameter" 
+        }
+      } else {
+        Write-Log -Message "Script failed, file extension was not recognized in $($MyInvocation.MyCommand)" -Severity 3 -Source $deployAppScriptFriendlyName
+        Exit-Script -ExitCode $Global:RCMissingParameter
+      }
+
+      $x++
     }
   } else {
     Write-Log -Message "Script failed, missing or bad scriptName parameter in $($MyInvocation.MyCommand)" -Severity 3 -Source $deployAppScriptFriendlyName

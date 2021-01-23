@@ -49,6 +49,20 @@
   directory_1:
     action: "REMOVE"
     targetDir: "c:\\asd"
+    force: "true"
+    mode: "recursively"
+  directory_2:
+    action: "ADD"
+    targetDir: "c:\\asd"
+  directory_3:
+    action: "COPY"
+    targetDir: "c:\\asd"
+    sourceDir: "c:\\test\\"
+    force: "false"
+    mode: "recursively"
+  directory_4:
+    action: "MOVE"
+    targetDir: "c:\\asd"
     sourceDir: "c:\\test\\"
     force: "false"
     mode: "recursively"
@@ -57,3 +71,23 @@
     scriptName: "script.ps1"
     scriptDir: "c:\\asd"
     scriptParam: "-uninstall true"
+  sleep_1:
+    time: "1000s"
+  dll_1:
+    action: "ADD"
+    dllFile: "lib.dll"
+    dllPath: "c:\\ddad"
+  winfeature_1:
+    action: "ADD"
+    feature: "net4"
+  archive_1:
+    action: "ADD"
+    path: "c:\\net4" 
+    archName: "newZip"
+    type: "7Z"
+  archive_2:
+    action: "UNPACK"
+    path: "c:\\net4.zip"
+    targetPath: "c:\\net4.zip"
+    type: "7Z"
+
