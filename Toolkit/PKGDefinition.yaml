@@ -58,14 +58,14 @@
     action: "COPY"
     targetDir: "c:\\asd"
     sourceDir: "c:\\test\\"
-    force: "false"
-    mode: "recursively"
   directory_4:
     action: "MOVE"
     targetDir: "c:\\asd"
     sourceDir: "c:\\test\\"
-    force: "false"
-    mode: "recursively"
+  directory_5:
+    action: "RENAME"
+    targetDir: "c:\\asd"
+    newName: "test"
  installation:
   script_1:
     scriptName: "script.ps1"
@@ -90,4 +90,19 @@
     path: "c:\\net4.zip"
     targetPath: "c:\\net4.zip"
     type: "7Z"
+  unblock_1:
+    path: "c:\\net4.zip"
+ postInstallation:
+  service_1:
+    actiona: "STOP"
+    serviceName: "script.exe"
+  service_2:
+    actiona: "DISABLE"
+    serviceName: "script.exe"
+  service_3:
+    actiona: "REMOVE"
+    serviceName: "script.exe"
 
+
+
+    #UNINSTALL,ADD,SERVICE,nazwaSerwisu=ServiceBinary=StartupType=DependsOn,null

@@ -38,8 +38,8 @@ Function Set-YAMLActions {
         if ($name -like "appv_*") { Set-APPV -actionDate $actionDate }
         if ($name -like "appvCG_*") { Set-APPVCG -actionDate $actionDate }
         if ($name -like "file_*") { Set-File -actionDate $actionDate }
-        if ($name -like "directory_*") { Set-Directory -actionDate $actionDate }
-        if ($name -like "service_*") { Set-Service -actionDate $actionDate }
+        if ($name -like "directory_*") { Set-Directory -actionDate $actionDate }                #to test, basic logic was done.
+        if ($name -like "service_*") { Set-Services -actionDate $actionDate }
         if ($name -like "registry_*") { Set-Registry-actionDate $actionDate }
         if ($name -like "process_*") { Set-Process -actionDate $actionDate }
         if ($name -like "sleep_*") { Set-Sleep -actionDate $actionDate }                        #to test, basic logic was done.
@@ -48,7 +48,7 @@ Function Set-YAMLActions {
         if ($name -like "winfeature_*") { Set-WinFeature -actionDate $actionDate }              #to test, basic logic was done.
         if ($name -like "systemsettings_*") { Set-SysSettings -actionDate $actionDate }
         if ($name -like "dll_*") { Set-DLL -actionDate $actionDate }                            #to test, basic logic was done.
-        if ($name -like "unblockfiles_*") { Set-UnblockFiles -actionDate $actionDate }
+        if ($name -like "unblockfiles_*") { Set-UnblockFiles -actionDate $actionDate }          #to test, basic logic was done.
         if ($name -like "scheduledtask_*") { Set-ScheduledTask -actionDate $actionDate }
         if ($name -like "detectionmethod_*") { Set-DetectionMethod -actionDate $actionDate }
 
@@ -336,6 +336,55 @@ Function Set-Archive {
 
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-Services {
+  param(
+      [Parameter(Mandatory = $True)]
+      $actionDate
+  )
+
+  $ServiceName = $actionDate.serviceName
+
+  Write-Log -Message "Starting: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName 
+
+  if($actionDate.action.ToUpper() -eq "ADD") { 
+    $ServiceBinary = $Data[1]
+    $StartupType = $Data[2]
+    $DependsOn = $Data[3]
+
+    if ($DependsOn -ne "null") {
+      $params = @{
+        Name = "$ServiceName"
+        BinaryPathName = "$ServiceBinary"
+        DependsOn = "$DependsOn"
+        DisplayName = "$ServiceName"
+        StartupType = "$StartupType"
+        Description = "$ServiceName"
+      }
+    } else {
+      $params = @{
+        Name = "$ServiceName"
+        BinaryPathName = "$ServiceBinary"
+        DisplayName = "$ServiceName"
+        StartupType = "$StartupType"
+        Description = "$ServiceName"
+      }
+    } New-Service @params }
+    elseif ($actionDate.action.ToUpper() -eq "STOP") { If (Get-Service $serviceName -ErrorAction SilentlyContinue) { Get-Service -Name $ServiceName | Set-Service -Status Stopped -PassThru -Force }} 
+    elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
+      if (Get-Service -Name $ServiceName -ErrorAction SilentlyContinue) {
+        Write-Log -Message "Removing: $ServiceName."
+        Stop-Service $ServiceName
+        Get-CimInstance -ClassName Win32_Service -Filter "Name=$ServiceName" | Remove-CimInstance
+      } else { Write-Log -Message "$ServiceName is not present, nothink to remove. Going to next step." }}
+    elseif ($actionDate.action.ToUpper() -eq "START") { If (Get-Service $serviceName -ErrorAction SilentlyContinue) { Get-Service -Name $ServiceName | Set-Service  -Status Running -PassThru }}
+    elseif ($actionDate.action.ToUpper() -eq "PAUSE") { If (Get-Service $serviceName -ErrorAction SilentlyContinue) {Get-Service -Name $ServiceName | Set-Service -Status Paused }}
+    elseif ($actionDate.action.ToUpper() -eq "DISABLE") { If (Get-Service $serviceName -ErrorAction SilentlyContinue) {Get-Service -Name $ServiceName | Set-Service -StartupType Disabled -PassThru }}
+  
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-EXE {
   param(
       [Parameter(Mandatory = $True)]
@@ -388,6 +437,8 @@ Function Set-Sleep {
 
   $Time = $actionDate.time
 
+  Write-Log -Message "Starts sleep for $Time."
+
   If (($Time -like "*s") -or ($Time -like "*S")) {
     $Time = $Time.Replace("s","")
     $Time = $Time.Replace("S","")
@@ -434,24 +485,34 @@ directory_3:
   action: "COPY"
   targetDir: "c:\\asd"
   sourceDir: "c:\\test\\"
-  force: "false"
-  mode: "recursively"
 directory_4:
   action: "MOVE"
   targetDir: "c:\\asd"
   sourceDir: "c:\\test\\"
-  force: "false"
-  mode: "recursively" #>
+  directory_5:
+    action: "RENAME"
+    targetDir: "c:\\asd"
+    newName: "test"#>
 
   $Directory = $actionDate.targetDir
   $Directory = Set-FullStringsFromVars -VarToCheck $Directory
   $Dirs = Get-MultiData -SrcData $Directory
 
+  $SrcDirectory = $actionDate.sourceDir
+  $SrcDirectory = Set-FullStringsFromVars -VarToCheck $SrcDirectory
+  $SrcDirs = Get-MultiData -SrcData $SrcDirectory
+
+  $newName = $actionDate.newName
+
   $isForce = $actionDate.force
   if (($isForce -ne '') -and (-not ([string]::IsNullOrEmpty($isForce)))) { $isAllForce = Get-MultiData -SrcData $isForce }
 
+  $mode = $actionDate.mode
+  if (($mode -ne '') -and (-not ([string]::IsNullOrEmpty($mode)))) { $allModes = Get-MultiData -SrcData $mode }
+
   $forAllUsers = $False
   if (($Directory -like "*%allusers%*") -or ($Directory -like "%allusers%*")) { $forAllUsers = $True }
+  if (($SrcDirectory -like "*%allusers%*") -or ($SrcDirectory -like "%allusers%*")) { $forAllUsers = $True }
 
   If ($actionDate.action.ToUpper() -eq "ADD") {
     $x = 0
@@ -473,11 +534,190 @@ directory_4:
       $x++
     }
   } elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
+    $x = 0
+    foreach ($dir in $Dirs) {
+      if ($allModes.Length -eq $Dirs.Length) { $dirMode = $allModes[$x] }
+      elseif (($allModes -ne '') -and (-not ([string]::IsNullOrEmpty($allModes)))) { $dirMode = $mode }
+      else { $dirMode = $true }
+
+      if ($isAllForce.Length -eq $Dirs.Length) { $localForce = $isAllForce[$x] }
+      elseif (($isForce -ne '') -and (-not ([string]::IsNullOrEmpty($isForce)))) { $localForce = $isForce }
+      else { $localForce = $true }
+
+      $LastChar = $Directory.Substring($dir.get_Length()-1)
+
+      if ($forAllUsers -eq $True) {
+        ForEach ($User In (Get-WmiObject Win32_UserProfile -F "Special != True" | Select-Object -Expand LocalPath)) {
+          Write-Log -Message "\User\dir - $($User)$dir"
+          $dir = "$User$dir"
+
+          If ($LastChar -eq "*") {
+            $BaseDir = ""
+            $DirArr = $dir.Split("\")
+            $ArrLeng = $DirArr.Length
+
+            Write-Log -Message -Message "ArrLeng: $ArrLeng " -Severity 2 -Source $deployAppScriptFriendlyName
+
+            For ($x = 0; $x -lt $ArrLeng - 1; $x++) {
+                Write-Log -Message -Message "DirArr[$x]: $DirArr[$x] " -Severity 2 -Source $deployAppScriptFriendlyName
+                If ($BaseDir -eq "") { $BaseDir = $DirArr[$x] }
+                else { $BaseDir = $BaseDir + "\" + $DirArr[$x] }
+            }
+
+            $PartName = ($DirArr[$DirArr.Length - 1]).Trim("*")
+            $Paths = Get-ChildItem $BaseDir | Where-Object {$_.Attributes -match'Directory'}
+
+            If (!($Paths)) { Write-Log -Message "There is no folders match the criterium." } 
+            Else {
+              Write-Log -Message -Message "PartName: $PartName " -Severity 2 -Source $deployAppScriptFriendlyName
+              Write-Log -Message -Message "BaseDir: $BaseDir " -Severity 2 -Source $deployAppScriptFriendlyName
+              Write-Log -Message -Message "Paths: $Paths " -Severity 2 -Source $deployAppScriptFriendlyName
+
+              foreach($path in $Paths) {
+                $dirP = $path.FullName
+                If (($dirP -like "*$PartName*") -or ($dirP -like "*$PartName")) {
+                  Write-Log -Message -Message "Directory: $dirP" -Severity 2 -Source $deployAppScriptFriendlyName
+                  Remove-Dir -dir $dir -dirMode $dirMode -localForce $localForce
+                }
+              }
+            }
+          } else { Remove-Dir -dir $dir -dirMode $dirMode -localForce $localForce }
+        }
+      } else { 
+        If ($LastChar -eq "*") { 
+          $BaseDir = ""
+          $DirArr = $dir.Split("\")
+          $ArrLeng = $DirArr.Length
+
+          Write-Log -Message -Message "ArrLeng: $ArrLeng " -Severity 2 -Source $deployAppScriptFriendlyName
+
+          For ($x = 0; $x -lt $ArrLeng - 1; $x++) {
+              Write-Log -Message -Message "DirArr[$x]: $DirArr[$x] " -Severity 2 -Source $deployAppScriptFriendlyName
+              If ($BaseDir -eq "") { $BaseDir = $DirArr[$x] }
+              else { $BaseDir = $BaseDir + "\" + $DirArr[$x] }
+          }
+
+          $PartName = ($DirArr[$DirArr.Length - 1]).Trim("*")
+          $Paths = Get-ChildItem $BaseDir | Where-Object {$_.Attributes -match'Directory'}
+
+          If (!($Paths)) { Write-Log -Message "There is no folders match the criterium." 
+          } else {
+            Write-Log -Message -Message "PartName: $PartName " -Severity 2 -Source $deployAppScriptFriendlyName
+            Write-Log -Message -Message "BaseDir: $BaseDir " -Severity 2 -Source $deployAppScriptFriendlyName
+            Write-Log -Message -Message "Paths: $Paths " -Severity 2 -Source $deployAppScriptFriendlyName
+
+            foreach($path in $Paths) {
+              $dirP = $path.FullName
+              If (($dirP -like "*$PartName*") -or ($dirP -like "*$PartName")) {
+                Write-Log -Message -Message "Directory: $dirP" -Severity 2 -Source $deployAppScriptFriendlyName
+                Remove-Dir -dir $dir -dirMode $dirMode -localForce $localForce
+              }
+            }
+          }
+        } else { Remove-Dir -dir $dir -dirMode $dirMode -localForce $localForce }
+      }
+
+      $x++
+    }
   } elseif ($actionDate.action.ToUpper() -eq "COPY") {
+    $x = 0
+    foreach ($OldDir in $SrcDirs) {
+      if ($SrcDirs.Length -eq $Dirs.Length) { $NewDir = $Dirs[$x] }
+      else { $NewDir = $Directory }
+
+      Write-Log -Message "Copy directory from: $OldDir to: $NewDir."
+
+      if ($forAllUsers -eq $True) {
+        ForEach ($User In (Get-WmiObject Win32_UserProfile -F "Special != True" | Select-Object -Expand LocalPath)) {
+          Write-Log -Message "\User\NewDir - $($User)$NewDir"
+          $UserDir = "$User$NewDir"
+          Write-Log -Message "Xcopy /E /I /S /H /Y $OldDir $UserDir"
+          Xcopy /E /I /S /H /Y $OldDir $UserDir
+        }
+      } else { 
+        if(-Not (Test-Path -Path $NewDir)) { 
+          Write-Log -Message "Xcopy /E /I /S /H /Y $OldDir $NewDir"
+          Xcopy /E /I /S /H /Y $OldDir $NewDir 
+        } elseif ($OldDir.Chars($OldDir.Length - 1) -eq "*" ) { 
+          Write-Log -Message "Xcopy /E /I /S /H /Y $OldDir $NewDir"
+          Xcopy /E /I /S /H /Y $OldDir $NewDir 
+        } 
+      }
+
+      $x++
+    }
   } elseif ($actionDate.action.ToUpper() -eq "MOVE") {
+    $x = 0
+    foreach ($OldDir in $SrcDirs) {
+      if ($SrcDirs.Length -eq $Dirs.Length) { $NewDir = $Dirs[$x] }
+      else { $NewDir = $Directory }
+
+      Write-Log -Message "Copy directory from: $OldDir to: $NewDir."
+
+      if ($forAllUsers -eq $True) {
+        ForEach ($User In (Get-WmiObject Win32_UserProfile -F "Special != True" | Select-Object -Expand LocalPath)) {
+          Write-Log -Message "\User\NewDir - $($User)$NewDir"
+          $UserDir = "$User$NewDir"
+          Write-Log -Message "Xcopy /E /I /S /H /Y $OldDir $UserDir"
+          Xcopy /E /I /S /H /Y $OldDir $UserDir
+          Remove-Dir -dir $OldDir
+        }
+      } else { 
+        if(-Not (Test-Path -Path $NewDir)) { 
+          Write-Log -Message "Xcopy /E /I /S /H /Y $OldDir $NewDir"
+          Xcopy /E /I /S /H /Y $OldDir $NewDir 
+        } elseif ($OldDir.Chars($OldDir.Length - 1) -eq "*" ) { 
+          Write-Log -Message "Xcopy /E /I /S /H /Y $OldDir $NewDir"
+          Xcopy /E /I /S /H /Y $OldDir $NewDir 
+        } 
+        Remove-Dir -dir $OldDir
+      }
+
+      $x++
+    }
   } elseif ($actionDate.action.ToUpper() -eq "RENAME") {
+    Write-Log -Message "Rename folder: $Directory to: $newName."
+
+    if ((get-item $Directory).PSIsContainer) { $oldFolderName = Split-Path $Directory -Leaf } 
+    else { $oldFolderName = Split-Path $Directory }
+
+    $newName = $Directory.Replace($oldFolderName, $newName)
+
+    if ($forAllUsers -eq $True) {
+      ForEach ($User In (Get-WmiObject Win32_UserProfile -F "Special != True" | Select-Object -Expand LocalPath)) {
+          Write-Log -Message "\User\Directory - $($User)$Directory"
+          $newName = "$User$newName"
+          $Directory = "$User$Directory"
+          
+          if ((-not (Test-Path $Directory -PathType Container)) -and (Test-Path $newName -PathType Container)) { Write-Log -Message "It seems that renaming was done, skipping action now." }
+          else { Rename-Item "$Directory" "$newName" }
+      }
+    } else { 
+      if ((-not (Test-Path $Directory -PathType Container)) -and (Test-Path $newName -PathType Container)) { Write-Log -Message "It seems that renaming was done, skipping action now." }
+      else { Rename-Item "$Directory" "$newName" }
+    }
   }
-  
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Remove-Dir {
+  param(
+      [Parameter(Mandatory = $True)]
+      $dir,
+      [Parameter(Mandatory = $False)]
+      $dirMode = "recurse",
+      [Parameter(Mandatory = $False)]
+      $localForce = $True
+  )
+
+  if (Test-Path "$dir") {
+    Write-Log -Message "Directory $dir exists."
+    if (($localForce -eq $True) -or ($dirMode.ToLower() -eq "recurse")) { Get-ChildItem "$dir" -Recurse | Remove-Item -Recurse -Force }
+    Remove-Item "$dir"
+    Write-Log -Message "$dir removed."
+  } Else { Write-Log -Message "Directory $dir doesn't exist." } 
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -491,14 +731,14 @@ Function Set-Script {
   
   Write-Log -Message "Starting: $($MyInvocation.MyCommand)/$($actionDate.appName)." -Source $deployAppScriptFriendlyName
 
-    $scriptName = Get-MultiData -SrcData $scriptName
+    $scriptNames = Get-MultiData -SrcData $scriptName
     $scriptDir = Get-MultiData -SrcData $scriptDir
     $scriptParam = Get-MultiData -SrcData $scriptParam
 
-  if (($scriptName.Length -gt 0) -and ($scriptName[0] -ne "") -and ($null -ne $scriptName[0])) { 
+  if (($scriptNames.Length -gt 0) -and ($scriptNames[0] -ne "") -and ($null -ne $scriptNames[0])) { 
     $x = 0
 
-    foreach($script in $scriptName) { 
+    foreach($script in $scriptNames) { 
       $script = Set-FullStringsFromVars -VarToCheck $script
       $scriptDirectory = Set-FullStringsFromVars -VarToCheck $scriptDir[$x]
       $scriptParameter = Set-FullStringsFromVars -VarToCheck $scriptParam[$x]
@@ -545,6 +785,34 @@ Function Set-Script {
     Write-Log -Message "Script failed, missing or bad scriptName parameter in $($MyInvocation.MyCommand)" -Severity 3 -Source $deployAppScriptFriendlyName
     Exit-Script -ExitCode $Global:RCMissingParameter
   }
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-UnblockFiles {
+  param(
+      [Parameter(Mandatory = $True)]
+      $actionDate
+  )
+
+  $DirPath = $actionDate.path
+  $DirsPath = Get-MultiData -SrcData $DirPath
+
+  if (($DirsPath.Length -gt 0) -and ($DirsPath[0] -ne "") -and ($null -ne $DirsPath[0])) { 
+    $x = 0
+
+    foreach($path in $DirsPath) { 
+      $path = Set-FullStringsFromVars -VarToCheck $path
+      try {
+        Write-Log -Message "Set-UnblockFiles execution started."        
+        Close-HandleToFolder -Folder $path 
+        Write-Log -Message "Set-UnblockFiles execution finished."
+      } catch { Write-Log -Message "Unlocking file failed."; exit 2 } 
+    }
+    $x++
+  }
+  
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
