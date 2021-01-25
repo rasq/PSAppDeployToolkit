@@ -102,7 +102,23 @@
   service_3:
     actiona: "REMOVE"
     serviceName: "script.exe"
-
-
-
-    #UNINSTALL,ADD,SERVICE,nazwaSerwisu=ServiceBinary=StartupType=DependsOn,null
+  service_4:
+    actiona: "ADD"
+    serviceName: "script.exe"
+    serviceBinary: ""
+    startupType: ""
+    dependsOn: ""
+  process_1:
+    actiona: "STOP"
+    processName: "script.exe"
+    processCMD: ""
+    mode: "BLOCK"
+  process_2:
+    actiona: "KILL"
+    processName: "script.exe"
+    processCMD: ""
+  process_3:
+    actiona: "START"
+    processName: "script.exe"
+    processCMD: ""
+    mode: "UNBLOCK"

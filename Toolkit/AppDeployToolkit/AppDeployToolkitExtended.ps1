@@ -39,7 +39,7 @@ Function Set-YAMLActions {
         if ($name -like "appvCG_*") { Set-APPVCG -actionDate $actionDate }
         if ($name -like "file_*") { Set-File -actionDate $actionDate }
         if ($name -like "directory_*") { Set-Directory -actionDate $actionDate }                #to test, basic logic was done.
-        if ($name -like "service_*") { Set-Services -actionDate $actionDate }
+        if ($name -like "service_*") { Set-Services -actionDate $actionDate }                   #to test, basic logic was done.
         if ($name -like "registry_*") { Set-Registry-actionDate $actionDate }
         if ($name -like "process_*") { Set-Process -actionDate $actionDate }
         if ($name -like "sleep_*") { Set-Sleep -actionDate $actionDate }                        #to test, basic logic was done.
@@ -343,42 +343,207 @@ Function Set-Services {
   )
 
   $ServiceName = $actionDate.serviceName
+  $ServiceNames = Get-MultiData -SrcData $ServiceName
+
+  
+  $ServiceBinary = $actionDate.serviceBinary
+  $ServiceBinarys = Get-MultiData -SrcData $ServiceBinary
+  $StartupType = $actionDate.startupType
+  $StartupTypes = Get-MultiData -SrcData $StartupType
+  $DependsOn = $actionDate.dependsOn
+  $ListDependsOn = Get-MultiData -SrcData $DependsOn
 
   Write-Log -Message "Starting: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName 
 
-  if($actionDate.action.ToUpper() -eq "ADD") { 
-    $ServiceBinary = $Data[1]
-    $StartupType = $Data[2]
-    $DependsOn = $Data[3]
+  $x = 0
 
-    if ($DependsOn -ne "null") {
-      $params = @{
-        Name = "$ServiceName"
-        BinaryPathName = "$ServiceBinary"
-        DependsOn = "$DependsOn"
-        DisplayName = "$ServiceName"
-        StartupType = "$StartupType"
-        Description = "$ServiceName"
+  foreach ($service in $ServiceNames) {
+    if($actionDate.action.ToUpper() -eq "ADD") { 
+      $ServiceBinary = $ServiceBinarys[$x]
+      $ServiceBinary = Set-FullStringsFromVars -VarToCheck $ServiceBinary
+      $StartupType = $StartupTypes[$x]
+      $DependsOn = $ListDependsOn[$x]
+
+      if ($DependsOn -ne "null") {
+        $params = @{
+          Name = "$service"
+          BinaryPathName = "$ServiceBinary"
+          DependsOn = "$DependsOn"
+          DisplayName = "$service"
+          StartupType = "$StartupType"
+          Description = "$service"
+        }
+      } else {
+        $params = @{
+          Name = "$service"
+          BinaryPathName = "$ServiceBinary"
+          DisplayName = "$service"
+          StartupType = "$StartupType"
+          Description = "$service"
+        }
+      } New-Service @params }
+      elseif ($actionDate.action.ToUpper() -eq "STOP") { If (Get-Service $service -ErrorAction SilentlyContinue) { Get-Service -Name $service | Set-Service -Status Stopped -PassThru -Force }} 
+      elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
+        if (Get-Service -Name $service -ErrorAction SilentlyContinue) {
+          Write-Log -Message "Removing: $service."
+          Stop-Service $service
+          Get-CimInstance -ClassName Win32_Service -Filter "Name=$service" | Remove-CimInstance
+        } else { Write-Log -Message "$service is not present, nothink to remove. Going to next step." }}
+      elseif ($actionDate.action.ToUpper() -eq "START") { If (Get-Service $service -ErrorAction SilentlyContinue) { Get-Service -Name $service | Set-Service  -Status Running -PassThru }}
+      elseif ($actionDate.action.ToUpper() -eq "PAUSE") { If (Get-Service $service -ErrorAction SilentlyContinue) {Get-Service -Name $service | Set-Service -Status Paused }}
+      elseif ($actionDate.action.ToUpper() -eq "DISABLE") { If (Get-Service $service -ErrorAction SilentlyContinue) {Get-Service -Name $service | Set-Service -StartupType Disabled -PassThru }}
+    $x++
+  }
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-Process {
+  param(
+      [Parameter(Mandatory = $True)]
+      $actionDate
+  )
+
+<# 
+  process_1:
+    actiona: "STOP"
+    processName: "script.exe"
+    processCMD: ""
+    mode: "BLOCK"
+  process_2:
+    actiona: "KILL"
+    processName: "script.exe"
+    processCMD: ""
+  process_3:
+    actiona: "START"
+    processName: "script.exe"
+    processCMD: ""
+    mode: "UNBLOCK"
+ #>
+
+  $ProcessName = $actionDate.processName
+  $ProcessesNames = Get-MultiData -SrcData $ProcessName
+
+  $x = 0
+
+  foreach ($proces in $ProcessesNames) {
+    If ($actionDate.action.ToUpper() -eq "STOP") {
+    } elseif ($actionDate.action.ToUpper() -eq "KILL") {
+      $ProcName = $proces.ToLower()
+      $ProcName = $ProcName.Replace(".exe","")
+      $KillProc = [System.Collections.ArrayList]@()
+
+      Write-Log -Message "ProcName fo handle: $ProcName "
+      Write-Log -Message "stop-process -name $ProcName -force"
+      
+      Get-Process -Name $ProcName | Stop-Process -Force
+
+
+      if ($Action.Length -eq 2) {  
+        if (($ProcName -ne "") -and ($ProcName -ne " ") -and (-not ([string]::IsNullOrEmpty($ProcName)))) {
+          foreach ($ProcName in $Process) { Write-Log -Message "Adding: $ProcName to process list."; $KillProc.Add($ProcName) }
+          if ($Action[1] -eq "block") { Block-AppExecution -ProcessName ($KillProc) } 
+          elseif ($Action[1] -eq "unblock") { Unblock-AppExecution }
+        }
+      } elseif ($Action.Length -eq 3) {
+        If (($Action[0] -eq "kill") -and ($Action[1] -eq "null")) {
+          Write-Log -Message "stop-process -name $ProcName -force"
+          stop-process -name $ProcName -force -ErrorAction SilentlyContinue
+        } else {
+          $cmdToKill = $Action[2]            
+          Write-Log -Message "Set-Processes cmdToKill - $cmdToKill"
+          if (($cmdToKill -ne "") -and ($cmdToKill -ne " ") -and (-not ([string]::IsNullOrEmpty($cmdToKill)))) {
+            #get-wmiobject win32_process | Where-Object commandline -like $cmdToKill | remove-wmiobject
+            $processesA = Get-WmiObject Win32_Process -Filter "name = '$ProcessesNames'"
+            Write-Log -Message "Set-Processes processesA - $processesA "
+
+            foreach($proc in $processesA) {
+              if (($proc.CommandLine -like "*$cmdToKill") -or ($proc.CommandLine -like "*$cmdToKill*") -or ($proc.CommandLine -like "$cmdToKill*") -or ($proc.CommandLine -like "$cmdToKill")) {
+                Write-Log -Message "Stopping proccess $($proc.ProcessId) with $($proc.ThreadCount) threads; $($proc.CommandLine.Substring(0, 50))..."
+                Stop-Process -F $proc.ProcessId
+              } else { Write-Log -Message "Skipping proccess $($proc.ProcessId) with $($proc.ThreadCount) threads; $($proc.CommandLine.Substring(0, 50))..." }
+            }
+          }
+        }
       }
-    } else {
-      $params = @{
-        Name = "$ServiceName"
-        BinaryPathName = "$ServiceBinary"
-        DisplayName = "$ServiceName"
-        StartupType = "$StartupType"
-        Description = "$ServiceName"
-      }
-    } New-Service @params }
-    elseif ($actionDate.action.ToUpper() -eq "STOP") { If (Get-Service $serviceName -ErrorAction SilentlyContinue) { Get-Service -Name $ServiceName | Set-Service -Status Stopped -PassThru -Force }} 
-    elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
-      if (Get-Service -Name $ServiceName -ErrorAction SilentlyContinue) {
-        Write-Log -Message "Removing: $ServiceName."
-        Stop-Service $ServiceName
-        Get-CimInstance -ClassName Win32_Service -Filter "Name=$ServiceName" | Remove-CimInstance
-      } else { Write-Log -Message "$ServiceName is not present, nothink to remove. Going to next step." }}
-    elseif ($actionDate.action.ToUpper() -eq "START") { If (Get-Service $serviceName -ErrorAction SilentlyContinue) { Get-Service -Name $ServiceName | Set-Service  -Status Running -PassThru }}
-    elseif ($actionDate.action.ToUpper() -eq "PAUSE") { If (Get-Service $serviceName -ErrorAction SilentlyContinue) {Get-Service -Name $ServiceName | Set-Service -Status Paused }}
-    elseif ($actionDate.action.ToUpper() -eq "DISABLE") { If (Get-Service $serviceName -ErrorAction SilentlyContinue) {Get-Service -Name $ServiceName | Set-Service -StartupType Disabled -PassThru }}
+
+
+    } elseif ($actionDate.action.ToUpper() -eq "START") {
+    }
+
+    $x++
+  }
+
+
+
+
+
+  $ProcessesNames = $Data[0]
+  $Actions = $Data[1]
+
+  $Process = $ProcessesNames.Split(";")
+  $Action = $Actions.Split(";")
+
+  Write-Log -Message "Set-Processes ProcessesNames: $ProcessesNames,  Action: $Action "
+  Write-Log -Message "Set-Processes Process - $Process "
+
+  If ($Action.Length -gt 0) {
+      If (($actionName -eq "STOP") -AND ($Action[0] -eq "kill")) {
+          foreach ($ProcName in $Process) {
+              $ProcName = $ProcName.ToLower()
+              $ProcName = $ProcName.Replace(".exe","")
+              $KillProc = [System.Collections.ArrayList]@()
+
+              Write-Log -Message "ProcName fo handle: $ProcName "
+
+              if ($Action.Length -eq 1) { 
+                  Write-Log -Message "stop-process -name $ProcName -force"
+                  stop-process -name $ProcName -force -ErrorAction SilentlyContinue #need to test and fix this arghs counting. 
+              } 
+
+              $lng = $Action.Length
+              Write-Log -Message "Action.Length = $lng"
+
+              foreach ($actionEl in $Action) { Write-Log -Message "actionEl = $actionEl" } 
+
+              if ($Action.Length -eq 2) {  
+                  if (($ProcName -ne "") -and ($ProcName -ne " ") -and (-not ([string]::IsNullOrEmpty($ProcName)))) {
+                      foreach ($ProcName in $Process) { Write-Log -Message "Adding: $ProcName to process list."; $KillProc.Add($ProcName) }
+                      if ($Action[1] -eq "block") { Block-AppExecution -ProcessName ($KillProc) } 
+                      elseif ($Action[1] -eq "unblock") { Unblock-AppExecution }
+                  }
+              } elseif ($Action.Length -eq 3) {
+                  If  (($Action[0] -eq "kill") -and ($Action[1] -eq "null")) {
+                      Write-Log -Message "stop-process -name $ProcName -force"
+                      stop-process -name $ProcName -force -ErrorAction SilentlyContinue
+                  } else {
+                      $cmdToKill = $Action[2]            
+                      Write-Log -Message "Set-Processes cmdToKill - $cmdToKill"
+                      if (($cmdToKill -ne "") -and ($cmdToKill -ne " ") -and (-not ([string]::IsNullOrEmpty($cmdToKill)))) {
+                          #get-wmiobject win32_process | Where-Object commandline -like $cmdToKill | remove-wmiobject
+                          $processesA = Get-WmiObject Win32_Process -Filter "name = '$ProcessesNames'"
+                          Write-Log -Message "Set-Processes processesA - $processesA "
+          
+                          foreach($proc in $processesA) {
+                              if (($proc.CommandLine -like "*$cmdToKill") -or ($proc.CommandLine -like "*$cmdToKill*") -or ($proc.CommandLine -like "$cmdToKill*") -or ($proc.CommandLine -like "$cmdToKill")) {
+                                  Write-Log -Message "Stopping proccess $($proc.ProcessId) with $($proc.ThreadCount) threads; $($proc.CommandLine.Substring(0, 50))..."
+                                  Stop-Process -F $proc.ProcessId
+                              } else { Write-Log -Message "Skipping proccess $($proc.ProcessId) with $($proc.ThreadCount) threads; $($proc.CommandLine.Substring(0, 50))..." }
+                          }
+                      }
+                  }
+              } else {
+                  Write-Log -Message "stop-process -name $ProcName -force"
+                  stop-process -name $ProcName -force -ErrorAction SilentlyContinue
+              }
+          }
+      }    
+  }
+
+
+
+
   
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
