@@ -34,23 +34,24 @@ Function Set-YAMLActions {
         $actionDate = $yamlData.$name
         if ($name -like "msi_*") { Set-MSI -actionDate $actionDate }
         if ($name -like "msix_*") { Set-MSIX -actionDate $actionDate }
-        if ($name -like "exe_*") { Set-EXE -actionDate $actionDate }
+        if ($name -like "exe_*") { Set-EXE -actionDate $actionDate }                            #to test, basic logic was done. Need to add version check
         if ($name -like "appv_*") { Set-APPV -actionDate $actionDate }
         if ($name -like "appvCG_*") { Set-APPVCG -actionDate $actionDate }
         if ($name -like "file_*") { Set-File -actionDate $actionDate }
         if ($name -like "directory_*") { Set-Directory -actionDate $actionDate }                #to test, basic logic was done.
         if ($name -like "service_*") { Set-Services -actionDate $actionDate }                   #to test, basic logic was done.
         if ($name -like "registry_*") { Set-Registry-actionDate $actionDate }
-        if ($name -like "process_*") { Set-Process -actionDate $actionDate }
+        if ($name -like "process_*") { Set-Process -actionDate $actionDate }                    #to test, basic logic was done. Only kill addedd
         if ($name -like "sleep_*") { Set-Sleep -actionDate $actionDate }                        #to test, basic logic was done.
         if ($name -like "script_*") { Set-Script -actionDate $actionDate }                      #to test, basic logic was done.
         if ($name -like "archive_*") { Set-Archive -actionDate $actionDate }                    #to test, basic logic was done.
         if ($name -like "winfeature_*") { Set-WinFeature -actionDate $actionDate }              #to test, basic logic was done.
-        if ($name -like "systemsettings_*") { Set-SysSettings -actionDate $actionDate }
+        if ($name -like "systemsettings_*") { Set-SysSettings -actionDate $actionDate }         #to test, basic logic was done. Need to change internal functions handling
         if ($name -like "dll_*") { Set-DLL -actionDate $actionDate }                            #to test, basic logic was done.
         if ($name -like "unblockfiles_*") { Set-UnblockFiles -actionDate $actionDate }          #to test, basic logic was done.
         if ($name -like "scheduledtask_*") { Set-ScheduledTask -actionDate $actionDate }
         if ($name -like "detectionmethod_*") { Set-DetectionMethod -actionDate $actionDate }
+        if ($name -like "if_*") { Set-IfStatement -actionDate $actionDate }
 
     <# 
     if ($Name -eq "GETREG") { $RC = Get-Registry -actionName $Action -Data $Data } 
@@ -60,7 +61,6 @@ Function Set-YAMLActions {
     if ($Name -eq "AS") { $RC = Set-ActiveSetupVal -actionName $Action -Data $Data }
     if ($Name -eq "VAR") { $RC = Set-Vars -actionName $Action -Data $Data }
     if ($Name -eq "SVAR") { $RC = Set-ScriptVars -actionName $Action -Data $Data }
-    if ($Name -eq "IF") { $RC = Set-If -actionName $Action -Data $Data -actionState $actionName }
     if ($Name -eq "PERMISSIONS") { $RC = Set-Permissions -actionName $Action -Data $Data }
     if ($Name -eq "OFFICE") { $RC = Set-Office -actionName $Action -Data $Data -DataType $DataType }
     if ($Name -eq "PINNEDAPPS") { $RC = Set-PinnedApps -actionName $Action -Data $Data }
@@ -429,6 +429,7 @@ Function Set-Process {
 
   foreach ($proces in $ProcessesNames) {
     If ($actionDate.action.ToUpper() -eq "STOP") {
+
     } elseif ($actionDate.action.ToUpper() -eq "KILL") {
       $ProcName = $proces.ToLower()
       $ProcName = $ProcName.Replace(".exe","")
@@ -473,78 +474,73 @@ Function Set-Process {
     }
 
     $x++
+  }  
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-SysSettings {
+  param(
+      [Parameter(Mandatory = $True)]
+      $actionDate
+  )
+
+  $mainValue = $actionDate.mainValue
+  $mainValues = Get-MultiData -SrcData $mainValue
+
+  If ($actionDate.action.ToUpper() -eq "CULTURE") {
+    foreach ($value in $mainValues) {
+      Write-Log -Message "Set new value for Culture: $value"
+      Set-Culture -CultureInfo $value
+    }
+  } elseif ($actionDate.action.ToUpper() -eq "NETUSE") {
+    foreach ($value in $mainValues) {
+      Write-Log -Message "Set new value for NET USE: $value"
+      NET USE $value
+    }
+  } elseif ($actionDate.action.ToUpper() -eq "REBOOT") {
+    Write-Log -Message "Set shutdown /f /r /t $mainValue"
+    shutdown /f /r /t $mainValue
+  } elseif ($actionDate.action.ToUpper() -eq "CHROMEUPDATES") {
+    Write-Log -Message "Disabling Google Chrome Updates"
+    
+    $data = @{
+              "action" = "KILL" 
+              "processName" = "googleupdate.exe"
+            }
+    Set-Processes -actionDate $data
+
+    $arrA = @("STOP","REMOVE","STOP","REMOVE")
+    $arrB = @("gupdate","gupdate","gupdatem","gupdatem")
+
+    $x = 0
+    foreach($action in $arrA) {
+      $name = $arrB[$x]
+      $data = @{
+        "action" = "$action" 
+        "serviceName" = "$name"
+      }
+      Set-Services -actionDate $data
+
+      $x++
+    }
+
+    $task1 = "GoogleUpdateTaskMachineCore=null=null=null"
+    $arr = $task1.Split("=")
+    Set-ScheduledTask -ActionName "REMOVE" -Data $arr
+    $task2 = "GoogleUpdateTaskMachineUA=null=null=null"
+    $arr = $task2.Split("=")
+    Set-ScheduledTask -ActionName "REMOVE" -Data $arr 
+
+    $ufile = "C:\Program Files (x86)\Google\Update"
+    $arr = $ufile.Split("=")
+    Set-UnblockFiles -actionName "ADD" -Data $arr  
+        
+    $dir = "C:\Program Files (x86)\Google\Update=C:\Program Files (x86)\Google\Update1"
+    $arr = $dir.Split("=")
+    Set-DirAction -actionName "RENAME" -Data $arr 
   }
-
-
-
-
-
-  $ProcessesNames = $Data[0]
-  $Actions = $Data[1]
-
-  $Process = $ProcessesNames.Split(";")
-  $Action = $Actions.Split(";")
-
-  Write-Log -Message "Set-Processes ProcessesNames: $ProcessesNames,  Action: $Action "
-  Write-Log -Message "Set-Processes Process - $Process "
-
-  If ($Action.Length -gt 0) {
-      If (($actionName -eq "STOP") -AND ($Action[0] -eq "kill")) {
-          foreach ($ProcName in $Process) {
-              $ProcName = $ProcName.ToLower()
-              $ProcName = $ProcName.Replace(".exe","")
-              $KillProc = [System.Collections.ArrayList]@()
-
-              Write-Log -Message "ProcName fo handle: $ProcName "
-
-              if ($Action.Length -eq 1) { 
-                  Write-Log -Message "stop-process -name $ProcName -force"
-                  stop-process -name $ProcName -force -ErrorAction SilentlyContinue #need to test and fix this arghs counting. 
-              } 
-
-              $lng = $Action.Length
-              Write-Log -Message "Action.Length = $lng"
-
-              foreach ($actionEl in $Action) { Write-Log -Message "actionEl = $actionEl" } 
-
-              if ($Action.Length -eq 2) {  
-                  if (($ProcName -ne "") -and ($ProcName -ne " ") -and (-not ([string]::IsNullOrEmpty($ProcName)))) {
-                      foreach ($ProcName in $Process) { Write-Log -Message "Adding: $ProcName to process list."; $KillProc.Add($ProcName) }
-                      if ($Action[1] -eq "block") { Block-AppExecution -ProcessName ($KillProc) } 
-                      elseif ($Action[1] -eq "unblock") { Unblock-AppExecution }
-                  }
-              } elseif ($Action.Length -eq 3) {
-                  If  (($Action[0] -eq "kill") -and ($Action[1] -eq "null")) {
-                      Write-Log -Message "stop-process -name $ProcName -force"
-                      stop-process -name $ProcName -force -ErrorAction SilentlyContinue
-                  } else {
-                      $cmdToKill = $Action[2]            
-                      Write-Log -Message "Set-Processes cmdToKill - $cmdToKill"
-                      if (($cmdToKill -ne "") -and ($cmdToKill -ne " ") -and (-not ([string]::IsNullOrEmpty($cmdToKill)))) {
-                          #get-wmiobject win32_process | Where-Object commandline -like $cmdToKill | remove-wmiobject
-                          $processesA = Get-WmiObject Win32_Process -Filter "name = '$ProcessesNames'"
-                          Write-Log -Message "Set-Processes processesA - $processesA "
-          
-                          foreach($proc in $processesA) {
-                              if (($proc.CommandLine -like "*$cmdToKill") -or ($proc.CommandLine -like "*$cmdToKill*") -or ($proc.CommandLine -like "$cmdToKill*") -or ($proc.CommandLine -like "$cmdToKill")) {
-                                  Write-Log -Message "Stopping proccess $($proc.ProcessId) with $($proc.ThreadCount) threads; $($proc.CommandLine.Substring(0, 50))..."
-                                  Stop-Process -F $proc.ProcessId
-                              } else { Write-Log -Message "Skipping proccess $($proc.ProcessId) with $($proc.ThreadCount) threads; $($proc.CommandLine.Substring(0, 50))..." }
-                          }
-                      }
-                  }
-              } else {
-                  Write-Log -Message "stop-process -name $ProcName -force"
-                  stop-process -name $ProcName -force -ErrorAction SilentlyContinue
-              }
-          }
-      }    
-  }
-
-
-
-
-  
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -556,10 +552,52 @@ Function Set-EXE {
       $actionDate
   )
 
-  If ($actionDate.action.ToUpper() -eq "ADD") {
-  } elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
+  $EXEFile = $actionDate.exeFile
+  $EXEFile = Set-FullStringsFromVars -VarToCheck $EXEFile
+  $EXEFiles = Get-MultiData -SrcData $EXEFile
+  $CMDParams = $actionDate.params
+  $CMDParams = Set-FullStringsFromVars -VarToCheck $CMDParams
+  $CMDParameters = Get-MultiData -SrcData $CMDParams
+
+  $PKGName = $actionDate.appName
+  $PKGNames = Get-MultiData -SrcData $PKGName
+  $appVer = $actionDate.appVer
+  $appVers = Get-MultiData -SrcData $appVer
+  $EXEGUID = $actionDate.GUID
+  $EXEGUIDs = Get-MultiData -SrcData $EXEGUID
+
+  $RC = $actionDate.rc
+  $x = 0
+
+  foreach ($exe in $EXEFiles) {
+    if ($EXEFiles.Length -eq $CMDParameters.Length) { $CMDParam = $CMDParameters[$x] } else { $CMDParam = "" }
+    if ($EXEFiles.Length -eq $EXEGUIDs.Length) { $GUID = $EXEGUIDs[$x] } else { $GUID = " " }
+    if ($EXEFiles.Length -eq $PKGNames.Length) { $TAG = $PKGNames[$x] } else { $TAG = " " }
+
+    Write-Log -Message "Will run $exe with $CMDParam."
+
+    if (($exe -like "\*") -or (((-not ($exe -like "*:\*")) -and (-not ($exe -like "*%*"))))) { $exe = "$SourcePath\$exe"}     
+    if (($RC -ne '') -and (-not ([string]::IsNullOrEmpty($RC)))) { $SuccessCode = "$SuccessCode,$RC" }
+
+    if ($GUID -ne ' ') { $isInstalled = (Get-InstalledApplication -ProductCode $GUID).DisplayName }
+    else { $isInstalled = " " }
+
+    If ($actionDate.action.ToUpper() -eq "ADD") { $action = "ADD" } else { $action = "REMOVE" }
+    If ([string]::IsNullOrEmpty($isInstalled) -or ($isInstalled -eq "") -or ($isInstalled -eq " ")) { $isInstalled = $false } else { $isInstalled = $true }
+      
+    If ((($isInstalled -eq $false) -and ($action -eq "ADD")) -or (($isInstalled -eq $true) -and ($action -eq "REMOVE"))) { 
+      $exe = "$exe" 
+      Test-ParamFile -path $exe
+      Write-Log -Message "Execute-Process -Path $exe -Parameters $CMDParam"
+      Execute-Process -Path $exe -Parameters $CMDParam -WindowStyle 'Hidden' -IgnoreExitCodes $SuccessCode 
+      If ([string]::IsNullOrEmpty($TAG) -or ($TAG -eq "") -or ($TAG -eq " ")) { Set-Tags -actionDate "$TAG" }
+    } else { 
+      if ($action -eq "ADD") { Write-Log -Message "GUID present, application already installed. Going to next step." }
+      if ($action -eq "REMOVE") { Write-Log -Message "GUID not present, nothing to uninstall. Going to next step." }
+    }
+    
+    $x++
   }
-  
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -615,7 +653,7 @@ Function Set-Sleep {
 
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-Function Set-File {
+Function Set-DUMMYFunction {
   param(
       [Parameter(Mandatory = $True)]
       $actionDate
@@ -976,6 +1014,164 @@ Function Set-UnblockFiles {
       } catch { Write-Log -Message "Unlocking file failed."; exit 2 } 
     }
     $x++
+  }
+  
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-File {
+  param(
+      [Parameter(Mandatory = $True)]
+      $actionDate
+  )
+
+<# 
+file_1:
+  action: "REMOVE"
+  inPath: "c:\\"
+  outPath: "c:\\test\\"
+  fileName: "app.exe"
+  force: "false"
+file_2:
+  action: "COPY"
+  inPath: "c:\\"
+  outPath: "c:\\test\\"
+  fileName: "app.exe"
+  force: "false"
+file_3:
+  action: "MOVE"
+  inPath: "c:\\"
+  outPath: "c:\\test\\"
+  fileName: "app.exe"
+  force: "false" 
+file_:
+  action: "CHECK"
+  inPath: "c:\\"
+  fileName: "app.exe"
+  exit: "ifMissing" #ifInPlace noExit 
+#>
+
+  $forAllUsers = $False
+  $x = 0
+
+  $OldDir = $actionDate.inPath
+  if (($OldDir -like "*%allusers%*") -or ($OldDir -like "%allusers%*")) { $forAllUsers = $True }
+  $OldDir = Set-FullStringsFromVars -VarToCheck $OldDir
+  $NewDir = $actionDate.outPath
+  if (($OldDir -like "*%allusers%*") -or ($OldDir -like "%allusers%*")) { $forAllUsers = $True }
+  $NewDir = Set-FullStringsFromVars -VarToCheck $NewDir
+
+
+  $FileName = $actionDate.fileName
+  $FileNames = Get-MultiData -SrcData $FileName
+  $NewFileName = $actionDate.newFileName
+  $NewFileNames = Get-MultiData -SrcData $NewFileName
+
+  $isForce = $actionDate.force
+  $isExit = $actionDate.exit
+
+  if (($isExit -eq "") -or ([string]::IsNullOrEmpty($isExit))) { $isExit = "noExit" }
+
+  if ($actionDate.action.ToUpper() -eq "REMOVE") {
+    foreach ($file in $FileNames) {
+      $FileName = $file
+      $Directory = $OldDir
+      $File = '"' + $Directory + "\" + $FileName + '"'
+
+      if ($forAllUsers -eq $True) {
+        ForEach ($User In (Get-WmiObject Win32_UserProfile -F "Special != True" | Select-Object -Expand LocalPath)) {
+          Write-Log -Message "\User\NewDirectory - $($User)$Directory"
+
+          if ($file.Contains("*")) { 
+            Write-Log -Message "Remove all files includes $file in $User$Directory"
+            Remove-Item –path "$User$Directory\*" -include $file
+          } else {
+            Write-Log -Message "Remove-Item $User$Directory$FileName"
+            if (Test-Path -Path "$($User)$Directory$FileName") { Remove-Item "$($User)$Directory$FileName" }
+          }
+        }
+      } else { 
+          if ($file.Contains("*")) { 
+            Write-Log -Message "Remove all files includes $file in $User$Directory"
+            Remove-Item –path "$Directory\*" -include $file
+          } else {
+            Write-Log -Message "& cmd /C del $File"
+            & cmd /C "del $File" 
+          }
+      }
+    }
+  } elseif ($actionDate.action.ToUpper() -eq "COPY") {
+  } elseif ($actionDate.action.ToUpper() -eq "MOVE") {
+  } elseif ($actionDate.action.ToUpper() -eq "RENAME") {
+    if ($FileNames.Length -eq $NewFileNames.Length) {
+      foreach ($file in $FileNames) {
+        $FileName = $file
+        $NewFileName = $NewFileNames[$x]
+        $Directory = $OldDir
+
+        if ($forAllUsers -eq $True) {
+          ForEach ($User In (Get-WmiObject Win32_UserProfile -F "Special != True" | Select-Object -Expand LocalPath)) {
+            Write-Log -Message "\User\Directory - $($User)$Directory"
+            $Directory = "$User$Directory"
+              
+            $File = '"' + $Directory + "\" + $FileName + '"'
+            $NewFileName = '"' + $NewFileName + '"'
+            Write-Log -Message "RENAME $File $NewFileName."
+            & cmd /C "RENAME $File $NewFileName"
+          }
+        } else {
+          $File = '"' + $Directory + "\" + $FileName + '"'
+          $NewFileName = '"' + $NewFileName + '"'
+          Write-Log -Message "RENAME $File $NewFileName."
+          & cmd /C "RENAME $File $NewFileName"
+        }
+        $x++
+      }
+    } else {
+      Write-Log -Message "Script failed, diffrent number of files in parameteres in  $($MyInvocation.MyCommand)" -Severity 3 -Source $deployAppScriptFriendlyName
+      Exit-Script -ExitCode $Global:RCMissingParameter
+    }
+  } elseif ($actionDate.action.ToUpper() -eq "ADD") {
+  } elseif ($actionDate.action.ToUpper() -eq "EDIT") {
+  } elseif ($actionDate.action.ToUpper() -eq "CHECK") {
+    foreach ($file in $FileNames) {
+      $Directory = $OldDir
+
+      $FilePath = "$Directory\$file"
+      if (Test-Path $FilePath) { 
+        Write-Log -Message "$FilePath exist."
+        $fileExist = $true
+      } else { 
+        Write-Log -Message "$FilePath do not exist."
+        $fileExist = $false
+      }
+
+      $RC = $True 
+      
+      if (($fileExist) -and ($isExit -eq "ifInPlace")) { 
+        Write-Log -Message "$FilePath exist, exiting script RC = 1."
+        Exit-Script -ExitCode $Global:RCMissingParameter 
+      } elseif ((-not($fileExist)) -and ($isExit -eq "ifMissing")) { 
+        Write-Log -Message "$FilePath do not exist, exiting script RC = 1."
+        Exit-Script -ExitCode $Global:RCMissingParameter 
+      } elseif ((-not($fileExist)) -and ($isExit -eq "ifInPlace")) { 
+        Write-Log -Message "$FilePath do not exist as expected, returning $True."
+        if ($RC) { $RC = $True }
+      } elseif (($fileExist) -and ($isExit -eq "ifMissing")) { 
+        Write-Log -Message "$FilePath exist as expected, returning $True."
+        if ($RC) { $RC = $True }
+      } elseif (($fileExist) -and ($isExit -eq "noExit")) { 
+        Write-Log -Message "$FilePath exist, returning $True."
+        if ($RC) { $RC = $True }
+      } elseif ((-not($fileExist)) -and ($isExit -eq "noExit")) { 
+        Write-Log -Message "$FilePath do not exist, returning $False."
+        $RC = $False 
+      } 
+    }
+    if ($RC -eq $False) { Write-Log -Message "At least one of files was in not correct state, will return False." }
+    return $RC
   }
   
 }

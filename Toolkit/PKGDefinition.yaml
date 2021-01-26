@@ -40,12 +40,7 @@
     exeFile: "app.exe"
     GUID: "appFromReg"
     params: ""
-  file_1:
-    action: "REMOVE"
-    inPath: "c:\\"
-    outPath: "c:\\test\\"
-    fileName: "app.exe"
-    force: "false"
+    rc: "1212,1314"
   directory_1:
     action: "REMOVE"
     targetDir: "c:\\asd"
@@ -122,3 +117,36 @@
     processName: "script.exe"
     processCMD: ""
     mode: "UNBLOCK"
+  settings_1:
+    actiona: "NETUSE"
+    mainValue: "\\\\sadada"
+  settings_2:
+    actiona: "CHROMEUPDATES"
+  settings_3:
+    actiona: "REBOOT"
+    mainValue: "30s"
+  settings_4:
+    actiona: "CULTURE"
+    mainValue: "en_EN"
+  uninstallation:
+    file_1:
+      action: "REMOVE"
+      inPath: "c:\\"
+      outPath: "c:\\test\\"
+      fileName: "app.exe"
+      force: "false"
+    file_2:
+      action: "COPY"
+      inPath: "c:\\"
+      outPath: "c:\\test\\"
+      fileName: "app.exe"
+      force: "false"
+    file_3:
+      action: "MOVE"
+      inPath: "c:\\"
+      outPath: "c:\\test\\"
+      fileName: "app.exe"
+      force: "false"
+
+
+
