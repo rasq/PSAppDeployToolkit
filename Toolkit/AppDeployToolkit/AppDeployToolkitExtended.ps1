@@ -37,10 +37,10 @@ Function Set-YAMLActions {
         if ($name -like "exe_*") { Set-EXE -actionDate $actionDate }                            #to test, basic logic was done. Need to add version check
         if ($name -like "appv_*") { Set-APPV -actionDate $actionDate }
         if ($name -like "appvCG_*") { Set-APPVCG -actionDate $actionDate }
-        if ($name -like "file_*") { Set-File -actionDate $actionDate }
+        if ($name -like "file_*") { Set-File -actionDate $actionDate }                          #to test, basic logic was done. Need to add: move, add, edit
         if ($name -like "directory_*") { Set-Directory -actionDate $actionDate }                #to test, basic logic was done.
         if ($name -like "service_*") { Set-Services -actionDate $actionDate }                   #to test, basic logic was done.
-        if ($name -like "registry_*") { Set-Registry-actionDate $actionDate }
+        if ($name -like "registry_*") { Set-Registry -actionDate $actionDate }                  #to test, basic logic was done.
         if ($name -like "process_*") { Set-Process -actionDate $actionDate }                    #to test, basic logic was done. Only kill addedd
         if ($name -like "sleep_*") { Set-Sleep -actionDate $actionDate }                        #to test, basic logic was done.
         if ($name -like "script_*") { Set-Script -actionDate $actionDate }                      #to test, basic logic was done.
@@ -49,9 +49,11 @@ Function Set-YAMLActions {
         if ($name -like "systemsettings_*") { Set-SysSettings -actionDate $actionDate }         #to test, basic logic was done. Need to change internal functions handling
         if ($name -like "dll_*") { Set-DLL -actionDate $actionDate }                            #to test, basic logic was done.
         if ($name -like "unblockfiles_*") { Set-UnblockFiles -actionDate $actionDate }          #to test, basic logic was done.
-        if ($name -like "scheduledtask_*") { Set-ScheduledTask -actionDate $actionDate }
+        if ($name -like "scheduledtask_*") { Set-ScheduledTask -actionDate $actionDate }        #to test, basic logic was done. Need to add: new, set
         if ($name -like "detectionmethod_*") { Set-DetectionMethod -actionDate $actionDate }
         if ($name -like "if_*") { Set-IfStatement -actionDate $actionDate }
+        if ($name -like "shortcut_*") { Set-Shortcut -actionDate $actionDate }                  #started but need to be done from sratch
+        if ($name -like "pins_*") { Set-Pin -actionDate $actionDate }                           #started but need to be done from sratch
 
     <# 
     if ($Name -eq "GETREG") { $RC = Get-Registry -actionName $Action -Data $Data } 
@@ -63,8 +65,7 @@ Function Set-YAMLActions {
     if ($Name -eq "SVAR") { $RC = Set-ScriptVars -actionName $Action -Data $Data }
     if ($Name -eq "PERMISSIONS") { $RC = Set-Permissions -actionName $Action -Data $Data }
     if ($Name -eq "OFFICE") { $RC = Set-Office -actionName $Action -Data $Data -DataType $DataType }
-    if ($Name -eq "PINNEDAPPS") { $RC = Set-PinnedApps -actionName $Action -Data $Data }
-    if ($Name -eq "LNK") { $RC = Set-Lnk -actionName $Action -Data $Data } #>
+    #>
     }
   } 
 }
@@ -653,6 +654,132 @@ Function Set-Sleep {
 
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-Registry {
+  param(
+      [Parameter(Mandatory = $True)]
+      $actionDate
+  )
+
+  $Key = $actionDate.key
+  $Key = Set-FullStringsFromVars -VarToCheck $Key
+  $Keys = Get-MultiData -SrcData $Key
+
+  $Name = $actionDate.name
+  $Type = $actionDate.type
+  $Value = $actionDate.value
+
+  If ($Key.ToUpper() -like "*.REG") {
+    if ($actionDate.action.ToUpper() -eq "ADD") {
+      foreach ($reg in $Keys) {
+        if (-not($reg -like "*:\*")) { $keyPath = "$SourcePath\$reg" }
+        else { $keyPath = "$reg" }
+        Test-ParamFile -path $keyPath
+
+        $startprocessParams = @{
+            FilePath     = "$Env:SystemRoot\REGEDIT.exe"
+            ArgumentList = '/s', $keyPath
+            Verb         = 'RunAs'
+            PassThru     = $true
+            Wait         = $true
+        }
+
+        $proc = Start-Process @startprocessParams
+        
+        if ($proc.ExitCode -eq 0) { 'Success!' }
+        else { "Fail! Exit code: $($Proc.ExitCode)" }
+      }
+    } else { 
+      Write-Log -Message "Script failed, action type missmatch $($MyInvocation.MyCommand)" -Severity 3 -Source $deployAppScriptFriendlyName
+      Exit-Script -ExitCode $Global:RCMissingParameter
+    }
+  } else { 
+    if ($Keys.Lengts -gt 1) {
+      Write-Log -Message "Script failed, to many key for ADD, CHANGE actions, please split them for different actions in $($MyInvocation.MyCommand)" -Severity 3 -Source $deployAppScriptFriendlyName
+      Exit-Script -ExitCode $Global:RCMissingParameter 
+    } else {
+      $Key = Convert-RegistryPath -Key $Key
+      Write-Log -Message "Set-Registry will proceed with: $Key."
+
+      if (($actionDate.action.ToUpper() -eq "ADD") -or ((Test-Path -Path $Key) -and ($actionDate.action.ToUpper() -eq "CHANGE"))) {
+        if (($Key -like "Registry::HKCU*") -or ($Key -like "Registry::HKEY_CURRENT_USER*") -or ($Key -like "Registry::HKEY_USERS*") -or ($Key -like "Registry::HKU*")) {
+          Write-Log -Message "Will edit users registry."
+
+          $Key = $Key.Replace("Registry::HKCU\","")
+          $Key = $Key.Replace("Registry::HKEY_CURRENT_USER\","")
+          $Key = $Key.Replace("Registry::HKEY_USERS\","")
+          $Key = $Key.Replace("Registry::HKU\","")
+
+          Write-Log -Message "Reg Path = $Key."
+
+          Set-RegistryValueForAllUnloadedUsers -Name $Name -Type $Type -Value $Value -Path $Key -Action $Action
+        } else {
+          if (($Name -eq "null") -and ($Name -eq "null") -and ($Name -eq "null")) { Set-RegistryKey -Key $Key } #TODO check issues when path do not exist, check paths translations
+          else {
+            Set-RegistryKey -Key $Key
+            if (-not (Test-RegValExists($Key, $Name))) {
+              If (($Key -ne "null") -and ($Name -ne "null") -and ($Type -ne "null") -and ($Value -ne "null")) { Set-RegistryKey -Key $Key -Name $Name -Type $Type -Value $Value } 
+              ElseIf (($Key -ne "null") -and ($Name -ne "null") -and ($Value -ne "null")) { Set-RegistryKey -Key $Key -Name $Name -Value $Value } 
+              ElseIf (($Key -ne "null") -and ($Value -ne "null")) { Set-RegistryKey -Key $Key -Value $Value }
+            } Else {
+              Write-Log -Message "Registry key $key\$name exists. Removing the key."
+              Remove-RegistryKey -Key $Key -Name $Name
+              
+              If (($Key -ne "null") -and ($Name -ne "null") -and ($Type -ne "null") -and ($Value -ne "null")) { Set-RegistryKey -Key $Key -Name $Name -Type $Type -Value $Value } 
+              ElseIf (($Key -ne "null") -and ($Name -ne "null") -and ($Value -ne "null")) { Set-RegistryKey -Key $Key -Name $Name -Value $Value } 
+              ElseIf (($Key -ne "null") -and ($Value -ne "null")) { Set-RegistryKey -Key $Key -Value $Value }            
+            }
+          }
+        }
+      } 
+    } elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
+      foreach ($reg in $Keys) {
+        if (($reg -like "Registry::HKCU*") -or ($reg -like "Registry::HKEY_CURRENT_USER*") -or ($reg -like "Registry::HKEY_USERS*") -or ($reg -like "Registry::HKU*")) {
+          Write-Log -Message "Will edit users registry."
+
+          $reg = $reg.Replace("Registry::HKCU\","")
+          $reg = $reg.Replace("Registry::HKEY_CURRENT_USER\","")
+          $reg = $reg.Replace("Registry::HKEY_USERS\","")
+          $reg = $reg.Replace("Registry::HKU\","")
+
+          Write-Log -Message "Reg Path = $reg."
+
+          Set-RegistryValueForAllUnloadedUsers -Name $Name -Type $Type -Value $Value -Path $reg -Action $Action
+        } else {
+          If (($reg -ne "null") -and ($Name -ne "null")) { Remove-RegistryKey -Key $reg -Name $Name } 
+          else { Remove-RegistryKey -Key $reg } 
+        }
+      }
+    } 
+  }
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-ScheduledTask {
+  param(
+      [Parameter(Mandatory = $True)]
+      $actionDate
+  )
+
+  $TaskName = $actionDate.taskName
+  $TasksNames = Get-MultiData -SrcData $TaskName
+    
+  if ($actionDate.action.ToUpper() -eq "NEW") { }
+  elseIf ($actionDate.action.ToUpper() -eq "SET") { }
+  elseIf ($actionDate.action.ToUpper() -eq "REMOVE") {
+    foreach ($task in $TasksNames) {
+      if(Get-ScheduledTask $task -ErrorAction Ignore) { 
+        Write-Log -Message "Removing Scheduled Task: $task."
+        Unregister-ScheduledTask -TaskName $task -Confirm:$false
+      } else { Write-Log -Message "$task is not present, nothink to remove. Going to next step." }
+    }
+  }
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-DUMMYFunction {
   param(
       [Parameter(Mandatory = $True)]
@@ -666,6 +793,109 @@ Function Set-DUMMYFunction {
   } elseif ($actionDate.action.ToUpper() -eq "EDIT") {
   }
   
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-Pin { #calosc do zrobienia
+  param(
+      [Parameter(Mandatory = $True)]
+      $actionDate
+  )
+
+  If ($actionDate.action.ToUpper() -eq "ADD") {
+  } elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
+  } elseif ($actionDate.action.ToUpper() -eq "COPY") {
+  } elseif ($actionDate.action.ToUpper() -eq "MOVE") {
+  } elseif ($actionDate.action.ToUpper() -eq "EDIT") {
+  }
+
+  $Action = $Data[0]
+  $FilePath = $Data[1]
+
+  $forAllUsers = $False
+
+  Write-Log -Message "Starting setting pinned item acctions ."
+
+  if ($FilePath -like "*%allusers%*") { $forAllUsers = $True }
+
+    if ($forAllUsers) {
+        ForEach ($User In (Get-WmiObject Win32_UserProfile -F "Special != True" | Select-Object -Expand LocalPath)) {
+            $FilePath = $FilePath.Replace("%allusers%\","")
+            $FilePath = "$($User)$FilePath"
+            
+            Write-Log -Message "FilePath - $FilePath "
+
+            If ($actionName -eq "ADD") {
+                if (($Action -eq "Taskbar") -or ($Action -eq "taskbar") -or ($Action -eq "TASKBAR")) { Set-PinnedApplication -Action "PintoTaskbar" -FilePath $FilePath }
+                elseif (($Action -eq "StartMenu") -or ($Action -eq "startmenu") -or ($Action -eq "STARTMENU")) { Set-PinnedApplication -Action "PintoStartMenu" -FilePath $FilePath }
+                else {}
+            }
+            If ($actionName -eq "REMOVE") { 
+                if (($Action -eq "Taskbar") -or ($Action -eq "taskbar") -or ($Action -eq "TASKBAR")) { Set-PinnedApplication -Action "UnpinfromTaskbar" -FilePath $FilePath }
+                elseif (($Action -eq "StartMenu") -or ($Action -eq "startmenu") -or ($Action -eq "STARTMENU")) { Set-PinnedApplication -Action "UnpinfromStartMenu" -FilePath $FilePath }
+                else {}
+            }  
+        }
+    } else {
+        If ($actionName -eq "ADD") {
+            if (($Action -eq "Taskbar") -or ($Action -eq "taskbar") -or ($Action -eq "TASKBAR")) { Set-PinnedApplication -Action "PintoTaskbar" -FilePath $FilePath }
+            elseif (($Action -eq "StartMenu") -or ($Action -eq "startmenu") -or ($Action -eq "STARTMENU")) { Set-PinnedApplication -Action "PintoStartMenu" -FilePath $FilePath }
+            else {}
+        }
+        If ($actionName -eq "REMOVE") { 
+            if (($Action -eq "Taskbar") -or ($Action -eq "taskbar") -or ($Action -eq "TASKBAR")) { Set-PinnedApplication -Action "UnpinfromTaskbar" -FilePath $FilePath }
+            elseif (($Action -eq "StartMenu") -or ($Action -eq "startmenu") -or ($Action -eq "STARTMENU")) { Set-PinnedApplication -Action "UnpinfromStartMenu" -FilePath $FilePath }
+            else {}
+        }  
+    }
+
+  
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-Shortcut {
+  param(
+      [Parameter(Mandatory = $True)]
+      $actionDate
+  )
+
+  <# If ($actionDate.action.ToUpper() -eq "ADD") {
+  } elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
+  } elseif ($actionDate.action.ToUpper() -eq "EDIT") {
+  }
+
+  $LnkName = $Data[0]
+  $LnkPath = $Data[1]
+  $PropertyName = $Data[2]
+  $PropertyValue = $Data[3]
+ 
+  $fileName = $LnkName
+  $folder = $LnkPath
+  [string]$from = "\\uncpath1\shares\" 
+  [string]$to = $PropertyValue
+
+  $list = Get-ChildItem -Path $folder -Filter $fileName -Recurse | Where-Object { $_.Attributes -ne "Directory" } | Select-Object -ExpandProperty FullName 
+  $obj = New-Object -ComObject WScript.Shell 
+    
+  ForEach($lnk in $list) { 
+    $obj = New-Object -ComObject WScript.Shell 
+    $link = $obj.CreateShortcut($lnk) 
+
+    [string]$tmp = $link.TargetPath  
+    [string]$tmp = [string]$tmp.Replace($from.tostring(),$to.ToString()) 
+        
+    #If you need workingdirectory change please uncomment the below line.
+    #$link.WorkingDirectory = [string]$WorkingDirectory.Replace($from.tostring(),$to.ToString()) 
+    #$link.Arguments = "-arguments" 
+
+    $link.TargetPath = [string]$tmp 
+    $link.Save() 
+  }  #>
+
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1103,6 +1333,66 @@ file_:
       }
     }
   } elseif ($actionDate.action.ToUpper() -eq "COPY") {
+    foreach ($file in $FileNames) {
+      $FileName = $file
+      $Directory = $OldDir
+      $TargetDirectory = $NewDir
+
+      if ($forAllUsers -eq $True) {
+        ForEach ($User In (Get-WmiObject Win32_UserProfile -F "Special != True" | Select-Object -Expand LocalPath)) {
+          if (-not ($Directory -like "*:\*")) { 
+            Write-Log -Message "\User\Directory - $($User)$Directory"
+            $Directory = "$User$Directory"
+          }
+          if (-not ($TargetDirectory -like "*:\*")) { 
+            Write-Log -Message "\User\TargetDirectory - $($User)$TargetDirectory"
+            $TargetDirectory = "$User$TargetDirectory"
+          }
+
+          if ($FileName -eq "*") {
+            if(!(Test-Path -Path "$TargetDirectory")){ New-Item -ItemType directory -Path "$TargetDirectory" }
+            Copy-Item -Path "$Directory\*" -Destination "$TargetDirectory" -Recurse -Force
+          } else {
+            $DestToUser = '"'+"$TargetDirectory\$FileName"+'"'
+            $Directory = '"'+"$Directory\$FileName"+'"'
+
+            if (-not (Test-Path -Path "$($User)$NewDir$FileName")) {
+                Write-Log -Message "& cmd /C copy /Y $Directory $DestToUser"
+                & cmd /C "copy /Y $Directory $DestToUser"
+            }
+          }
+        }
+      } else {
+        if ($FileName -eq "*") {
+          if (Test-Path -Path $TargetDirectory) { Write-Log -Message "$TargetDirectory exists. Copying content of $Directory." } 
+          else { New-Item -ItemType directory -Path "$TargetDirectory" }
+
+          if ($TargetDirectory -like "*\") { $TargetDirectory = $TargetDirectory.Substring(0,$TargetDirectory.Length-1) }
+          if ($Directory -like "*\") { $Directory = $Directory.Substring(0,$Directory.Length-1) }
+
+          robocopy "$Directory" "$TargetDirectory" /Mir
+
+          $AllFiles = Get-ChildItem -Path "$TargetDirectory\" -Name
+          Write-Log -Message "Files in: $TargetDirectory\."
+          foreach ($f in $AllFiles) { Write-Log -Message "- $f." }
+        } else {
+
+          if ($isForce -eq "true") { if (Test-Path -Path $TargetDirectory) { Remove-Item $TargetDirectory } }
+          if (Test-Path -Path $TargetDirectory) { Write-Log -Message "$TargetDirectory exists. Copying $FileName." } 
+          else {
+              Write-Log -Message "$TargetDirectory doesn't exist, creating."
+              New-Item -ItemType directory -Path "$TargetDirectory"
+          }
+
+          $NewDir = '"'+$TargetDirectory+'"'
+          if (-not(Test-Path -Path $TargetDirectory)) {
+              Write-Log -Message "copy $Directory $TargetDirectory"
+              & cmd /C "copy $Directory $TargetDirectory"
+          }
+        }
+      }
+      $x++
+    }
   } elseif ($actionDate.action.ToUpper() -eq "MOVE") {
   } elseif ($actionDate.action.ToUpper() -eq "RENAME") {
     if ($FileNames.Length -eq $NewFileNames.Length) {
