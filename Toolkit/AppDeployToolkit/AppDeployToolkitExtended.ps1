@@ -50,7 +50,7 @@ Function Set-YAMLActions {
         if ($name -like "dll_*") { Set-DLL -actionDate $actionDate }                            #to test, basic logic was done.
         if ($name -like "unblockfiles_*") { Set-UnblockFiles -actionDate $actionDate }          #to test, basic logic was done.
         if ($name -like "scheduledtask_*") { Set-ScheduledTask -actionDate $actionDate }        #to test, basic logic was done. Need to add: new, set
-        if ($name -like "detectionmethod_*") { Set-DetectionMethod -actionDate $actionDate }
+        if ($name -like "detectionmethod_*") { Set-DetectionMethod -actionDate $actionDate }    #to test, basic logic was done.
         if ($name -like "if_*") { Set-IfStatement -actionDate $actionDate }
         if ($name -like "shortcut_*") { Set-Shortcut -actionDate $actionDate }                  #started but need to be done from sratch
         if ($name -like "pins_*") { Set-Pin -actionDate $actionDate }                           #to test, basic logic was done.
@@ -1513,12 +1513,20 @@ Function Set-DetectionMethod {
   }
 
   $File = $actionDate.filePath 
-  if ($File -like "-*") { $FILEForNegative = $True; $File = $File.substring(1) } 
-  else { $FILEForNegative = $False } 
+  if (Test-forVariable -varName $File) { $testForFile = $false } 
+  else {
+    if ($File -like "-*") { $FILEForNegative = $True; $File = $File.substring(1) } 
+    else { $FILEForNegative = $False } 
+    $testForFile = $true
+  }
   
   $RegPath = $actionDate.registryPath
-  if ($RegPath -like "-*") { $REGForNegative = $True; $RegPath = $RegPath.substring(1) } 
-  else { $REGForNegative = $False }
+  if (Test-forVariable -varName $RegPath) { $testForReg = $false } 
+  else {
+    if ($RegPath -like "-*") { $REGForNegative = $True; $RegPath = $RegPath.substring(1) } 
+    else { $REGForNegative = $False }
+    $testForReg = $true
+  }
 
   $RegVarName = $actionDate.registryVariableName
   $RegValue =$actionDate.registryVariableValue
@@ -1526,7 +1534,7 @@ Function Set-DetectionMethod {
 
   if ($testForGUID) {
     $AppGUIDs = Get-MultiData -SrcData $AppGUID
- 
+
     if (($AppGUIDs.Length -gt 0) -and ($AppGUIDs[0] -ne "") -and ($null -ne $AppGUIDs[0])) {
       foreach ($GUID in $AppGUIDs) {
         if (($GUID -ne "") -and ($null -ne $GUID)) {
@@ -1541,137 +1549,150 @@ Function Set-DetectionMethod {
           } else { $GUIDResult = 0 }
         } else { $GUIDResult = 2 }
       }
-    else { $GUIDResult = 2 }
+    } else { $GUIDResult = 2 }
   }
   
 
-  
   if ($testForPKGName) {
+    $AppPKGNames = Get-MultiData -SrcData $AppPKGName
 
-  }
-    
-<# 	
-
-    if (($AppPKGName -ne "NULL") -and ($AppPKGName -ne "null")) {
-        $TAGFile = "$TagsDir\$AppPKGName.tag"
+    if (($AppPKGNames.Length -gt 0) -and ($AppPKGNames[0] -ne "") -and ($null -ne $AppPKGNames[0])) {
+      foreach ($tag in $AppPKGNames) {
+        $TAGFile = "$TagsDir\$tag.tag"
         Write-Log -Message "Testing: - $TAGFile"
 
         if (Test-Path $TAGFile) { $TAGResult = 0 }
         else { $TAGResult = 1 }
+      }
     } else { $TAGResult = 2 }
+  }
+  
 
-    if (($File -ne "NULL") -and ($File -ne "null")) {
-        if (Test-Path $File) { $FileResult = 0 }
+  if ($testForFile) {
+    $Files = Get-MultiData -SrcData $File
+
+    if (($Files.Length -gt 0) -and ($Files[0] -ne "") -and ($null -ne $Files[0])) {
+      foreach ($path in $Files) {
+        if (Test-Path $path) { $FileResult = 0 }
         else { $FileResult = 1 }
+      }
     } else { $FileResult = 2 }
+  }
+  
 
-    if (($RegPath -ne "NULL") -and ($RegPath -ne "null")) {
-        $RegPathArr = $RegPath.split('\')
+  if ($testForReg) { #TODO handle registry variable name and value
+    $RegPaths = Get-MultiData -SrcData $RegPath
+    $RegVarNames = Get-MultiData -SrcData $RegVarName
+    $RegValues = Get-MultiData -SrcData $RegValues
+
+
+    if (($RegPaths.Length -gt 0) -and ($RegPaths[0] -ne "") -and ($null -ne $RegPaths[0])) {
+      foreach ($reg in $RegPaths) {
+        $RegPathArr = $reg.split('\')
         $TMPRegPath = ""
         $TMPRegVar = $RegPathArr[-1]
         $x = 0
-            foreach ($arrItem in $RegPathArr) { 
-                If ($arrItem -ne $TMPRegVar) {
-                    If ($x -eq 0) { $TMPRegPath = $arrItem }
-                    else { $TMPRegPath = "$TMPRegPath\$arrItem" }
-                }
-                $x++
-            }
+
+        foreach ($arrItem in $RegPathArr) { 
+          If ($arrItem -ne $TMPRegVar) {
+            if ($x -eq 0) { $TMPRegPath = $arrItem }
+            else { $TMPRegPath = "$TMPRegPath\$arrItem" }
+          }
+          $x++
+        }
 
         $TestConstainer = Test-Path $RegPath -PathType 'Container'
         if (($RegValue -eq "NULL") -or ($RegValue -eq "null")) {
-            Write-Log -Message "No regValue option."
-            if ($TestConstainer) { $RegResult = 0 
-            } else { 
-                $TestRegVal = Test-RegistryValue -Key $TMPRegPath -Value $TMPRegVar
-                if ($TestRegVal) { $RegResult = 0 }
-                else { $RegResult = 1 }      
-            }
+          Write-Log -Message "No regValue option."
+          if ($TestConstainer) { $RegResult = 0 
+          } else { 
+            $TestRegVal = Test-RegistryValue -Key $TMPRegPath -Value $TMPRegVar
+            if ($TestRegVal) { $RegResult = 0 }
+            else { $RegResult = 1 }      
+          }
         } else {
-            Write-Log -Message "RegValue option."
-            If (Test-RegistryValue -Key $TMPRegPath -Value $TMPRegVar) { 
-                $ReadReg = Get-ItemPropertyValue $TMPRegPath -Name $TMPRegVar
-                Write-Log -Message "ReadReg - $ReadReg"
-                if (($ReadReg -like "*$RegValue") -or ($ReadReg -like "*$RegValue*") -or ($ReadReg -like "$RegValue") -or ($ReadReg -like "$RegValue*")) { $RegResult = 0 }
-                else { $RegResult = 1 }
-            } else { $RegResult = 1 }
+          Write-Log -Message "RegValue option."
+          If (Test-RegistryValue -Key $TMPRegPath -Value $TMPRegVar) { 
+            $ReadReg = Get-ItemPropertyValue $TMPRegPath -Name $TMPRegVar
+            Write-Log -Message "ReadReg - $ReadReg"
+            if (($ReadReg -like "*$RegValue") -or ($ReadReg -like "*$RegValue*") -or ($ReadReg -like "$RegValue") -or ($ReadReg -like "$RegValue*")) { $RegResult = 0 }
+            else { $RegResult = 1 }
+          } else { $RegResult = 1 }
         }
+      }
     } else { $RegResult = 2 }
+  }
 
+  if ((($GUIDResult -eq 0) -and ($GUIDForNegative -eq $True)) -or (($GUIDResult -eq 1) -and ($GUIDForNegative -eq $False))) { $GUIDResult = 1 }
+  else { $GUIDResult = 0 }
 
-    if ((($GUIDResult -eq 0) -and ($GUIDForNegative -eq $True)) -or (($GUIDResult -eq 1) -and ($GUIDForNegative -eq $False))) { $GUIDResult = 1 }
-    else { $GUIDResult = 0 }
+  if ((($TAGResult -eq 0) -and ($TAGForNegative -eq $True)) -or (($TAGResult -eq 1) -and ($TAGForNegative -eq $False))) { $TAGResult = 1 }
+  else { $TAGResult = 0 }
 
-    if ((($TAGResult -eq 0) -and ($TAGForNegative -eq $True)) -or (($TAGResult -eq 1) -and ($TAGForNegative -eq $False))) { $TAGResult = 1 }
-    else { $TAGResult = 0 }
+  if ((($FileResult -eq 0) -and ($FILEForNegative -eq $True)) -or (($FileResult -eq 1) -and ($FILEForNegative -eq $False))) { $FileResult = 1 }
+  else { $FileResult = 0 }
 
-    if ((($FileResult -eq 0) -and ($FILEForNegative -eq $True)) -or (($FileResult -eq 1) -and ($FILEForNegative -eq $False))) { $FileResult = 1 }
-    else { $FileResult = 0 }
-
-    if ((($RegResult -eq 0) -and ($REGForNegative -eq $True)) -or (($RegResult -eq 1) -and ($REGForNegative -eq $False))) { $RegResult = 1 }
-    else { $RegResult = 0 }
-
-
-    Write-Log -Message "Detection method, testing results are:"
-    Write-Log -Message "GUIDResult: $GUIDResult"
-    Write-Log -Message "GUIDForNegative: $GUIDForNegative"
-    Write-Log -Message "TAGResult: $TAGResult"
-    Write-Log -Message "TAGForNegative: $TAGForNegative"
-    Write-Log -Message "FileResult: $FileResult"
-    Write-Log -Message "FILEForNegative: $FILEForNegative"
-    Write-Log -Message "RegResult: $RegResult"
-    Write-Log -Message "REGForNegative: $REGForNegative"
-
-
-    if ($allNegative -eq 'true') { 
-        if (($GUIDForNegative -eq $True) -and ($GUIDResult -ne 0)) { $ExitScriptA = $True }
-        elseif (($GUIDForNegative -eq $False) -and ($GUIDResult -eq 0)) { $ExitScriptA = $True }
-        else { $ExitScriptA = $False }
-
-        if (($TAGForNegative -eq $True) -and ($TAGResult -ne 0)) { $ExitScriptB = $True }
-        elseif (($TAGForNegative -eq $False) -and ($TAGResult -eq 0)) { $ExitScriptB = $True }
-        else { $ExitScriptB = $False }
-
-        if (($FILEForNegative -eq $True) -and ($FileResult -ne 0)) { $ExitScriptC = $True } 
-        elseif (($FILEForNegative -eq $False) -and ($FileResult -eq 0)) { $ExitScriptC = $True }
-        else { $ExitScriptC = $False }
-
-        if (($REGForNegative -eq $True) -and ($RegResult -ne 0)) { $ExitScriptD = $True } 
-        elseif (($REGForNegative -eq $False) -and ($RegResult -eq 0)) { $ExitScriptD = $True }
-        else { $ExitScriptD = $False }
-
-        Write-Log -Message "ExitScriptA: $ExitScriptA"
-        Write-Log -Message "ExitScriptB: $ExitScriptB"
-        Write-Log -Message "ExitScriptC: $ExitScriptC"
-        Write-Log -Message "ExitScriptD: $ExitScriptD"
-
-        if (($ExitScriptA -eq $True) -and ($ExitScriptB -eq $True) -and ($ExitScriptC -eq $True) -and ($ExitScriptD -eq $True)) { $ExitScript = $False }
-        else { $ExitScript = $True }
-    } else {
-        if (($GUIDResult -eq 0) -and ($TAGResult -eq 0) -and ($FileResult -eq 0) -and ($RegResult -eq 0)) { $ExitScript = $True } #tests passed so script can stop - nothing to change
-        else { $ExitScript = $False } #some of the tests failed, so script need to proceed
-    }
-    
-    $ExitCodeVarName = $ExitCodeVarName.replace(' ','')
-    
-    if (($ExitCodeVarName -like "NULL*") -or ($ExitCodeVarName -like "null*") -or ($ExitCodeVarName -like "NULL") -or ($ExitCodeVarName -like "null")) { $ExitCodeVarName = 0 } 
-    else { 
-        try {
-            $null = Get-Variable -Scope Global -Name $ExitCodeVarName -ErrorAction Stop
-            $variableExists = $true
-        } catch { $variableExists = $false }
-
-        if ($variableExists) { $ExitCodeVarName = Get-Variable -Scope Global $ExitCodeVarName -ValueOnly }
-    }
-
-    [int]$intNum = [convert]::ToInt32($ExitCodeVarName, 10)
-
-    If ($ExitScript -eq $True) { Write-Log -Message "Tests passed, going to next function, RC = 0." }
-    else  {   
-        Write-Log -Message "Will Exit Script - ExitCodeVarName = $ExitCodeVarName."
-        Set-Finalize -ExitCode $intNum 
-    } #>
+  if ((($RegResult -eq 0) -and ($REGForNegative -eq $True)) -or (($RegResult -eq 1) -and ($REGForNegative -eq $False))) { $RegResult = 1 }
+  else { $RegResult = 0 }
   
+  Write-Log -Message "Detection method, testing results are:"
+  Write-Log -Message "GUIDResult: $GUIDResult"
+  Write-Log -Message "GUIDForNegative: $GUIDForNegative"
+  Write-Log -Message "TAGResult: $TAGResult"
+  Write-Log -Message "TAGForNegative: $TAGForNegative"
+  Write-Log -Message "FileResult: $FileResult"
+  Write-Log -Message "FILEForNegative: $FILEForNegative"
+  Write-Log -Message "RegResult: $RegResult"
+  Write-Log -Message "REGForNegative: $REGForNegative"
+
+  if ($allNegative -eq 'true') { 
+    if (($GUIDForNegative -eq $True) -and ($GUIDResult -ne 0)) { $ExitScriptA = $True }
+    elseif (($GUIDForNegative -eq $False) -and ($GUIDResult -eq 0)) { $ExitScriptA = $True }
+    else { $ExitScriptA = $False }
+
+    if (($TAGForNegative -eq $True) -and ($TAGResult -ne 0)) { $ExitScriptB = $True }
+    elseif (($TAGForNegative -eq $False) -and ($TAGResult -eq 0)) { $ExitScriptB = $True }
+    else { $ExitScriptB = $False }
+
+    if (($FILEForNegative -eq $True) -and ($FileResult -ne 0)) { $ExitScriptC = $True } 
+    elseif (($FILEForNegative -eq $False) -and ($FileResult -eq 0)) { $ExitScriptC = $True }
+    else { $ExitScriptC = $False }
+
+    if (($REGForNegative -eq $True) -and ($RegResult -ne 0)) { $ExitScriptD = $True } 
+    elseif (($REGForNegative -eq $False) -and ($RegResult -eq 0)) { $ExitScriptD = $True }
+    else { $ExitScriptD = $False }
+
+    Write-Log -Message "ExitScriptA: $ExitScriptA"
+    Write-Log -Message "ExitScriptB: $ExitScriptB"
+    Write-Log -Message "ExitScriptC: $ExitScriptC"
+    Write-Log -Message "ExitScriptD: $ExitScriptD"
+
+    if (($ExitScriptA -eq $True) -and ($ExitScriptB -eq $True) -and ($ExitScriptC -eq $True) -and ($ExitScriptD -eq $True)) { $ExitScript = $False }
+    else { $ExitScript = $True }
+  } else {
+    if (($GUIDResult -eq 0) -and ($TAGResult -eq 0) -and ($FileResult -eq 0) -and ($RegResult -eq 0)) { $ExitScript = $True } #tests passed so script can stop - nothing to change
+    else { $ExitScript = $False } #some of the tests failed, so script need to proceed
+  }
+    
+  $ExitCodeVarName = $ExitCodeVarName.replace(' ','')
+  
+  if (($ExitCodeVarName -like "NULL*") -or ($ExitCodeVarName -like "null*") -or ($ExitCodeVarName -like "NULL") -or ($ExitCodeVarName -like "null")) { $ExitCodeVarName = 0 } 
+  else { 
+    try {
+      $null = Get-Variable -Scope Global -Name $ExitCodeVarName -ErrorAction Stop
+      $variableExists = $true
+    } catch { $variableExists = $false }
+
+    if ($variableExists) { $ExitCodeVarName = Get-Variable -Scope Global $ExitCodeVarName -ValueOnly }
+  }
+
+  [int]$intNum = [convert]::ToInt32($ExitCodeVarName, 10)
+
+  If ($ExitScript -eq $True) { Write-Log -Message "Tests passed, going to next function, RC = 0." }
+  else  {   
+    Write-Log -Message "Will Exit Script - ExitCodeVarName = $ExitCodeVarName."
+    Set-Finalize -ExitCode $intNum 
+  }
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
