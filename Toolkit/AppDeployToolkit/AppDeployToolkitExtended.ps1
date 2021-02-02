@@ -53,7 +53,7 @@ Function Set-YAMLActions {
         if ($name -like "detectionmethod_*") { Set-DetectionMethod -actionDate $actionDate }
         if ($name -like "if_*") { Set-IfStatement -actionDate $actionDate }
         if ($name -like "shortcut_*") { Set-Shortcut -actionDate $actionDate }                  #started but need to be done from sratch
-        if ($name -like "pins_*") { Set-Pin -actionDate $actionDate }                           #started but need to be done from sratch
+        if ($name -like "pins_*") { Set-Pin -actionDate $actionDate }                           #to test, basic logic was done.
 
     <# 
     if ($Name -eq "GETREG") { $RC = Get-Registry -actionName $Action -Data $Data } 
@@ -223,7 +223,7 @@ Function Set-DLL {
   $DllPath = $actionDate.dllPath
 
 
-  if (($DllFile -ne '') -and (-not ([string]::IsNullOrEmpty($DllFile)))) {
+  if (!(Test-forVariable -varName $DllFile)) {
     $DllPaths = Get-MultiData -SrcData $DllPath
     $DllFiles = Get-MultiData -SrcData $DllFile
     $rootDllPath = ""
@@ -296,7 +296,7 @@ Function Set-Archive {
   $DirsPath = Get-MultiData -SrcData $DirPath
   $ArchsName = Get-MultiData -SrcData $ArchName
 
-  if (($ArchName -ne '') -and (-not ([string]::IsNullOrEmpty($ArchName)))) {
+  if (!(Test-forVariable -varName $ArchName)) {
     If ($actionDate.action.ToUpper() -eq "ADD") {
       foreach ($dir in $DirsPath) {
         if ($DirsPath.Length -eq $ArchsName.Length) { $zipName = $ArchsName[$x] }
@@ -311,7 +311,7 @@ Function Set-Archive {
 
       foreach ($arch in $ArchsName) {
         if ($DirsPath.Length -eq $ArchsName.Length) {
-          if (($DirsPath[$x] -eq "") -or ([string]::IsNullOrEmpty($DirsPath[$x]))) { $Directory = $SourcePath  } 
+          if (Test-forVariable -varName $DirsPath[$x]) { $Directory = $SourcePath  } 
           else { $Directory = Set-FullStringsFromVars -VarToCheck $DirsPath[$x] }
         } else { $Directory = $SourcePath }
 
@@ -443,7 +443,7 @@ Function Set-Process {
 
 
       if ($Action.Length -eq 2) {  
-        if (($ProcName -ne "") -and ($ProcName -ne " ") -and (-not ([string]::IsNullOrEmpty($ProcName)))) {
+        if (!(Test-forVariable -varName $ProcName)) {
           foreach ($ProcName in $Process) { Write-Log -Message "Adding: $ProcName to process list."; $KillProc.Add($ProcName) }
           if ($Action[1] -eq "block") { Block-AppExecution -ProcessName ($KillProc) } 
           elseif ($Action[1] -eq "unblock") { Unblock-AppExecution }
@@ -455,7 +455,7 @@ Function Set-Process {
         } else {
           $cmdToKill = $Action[2]            
           Write-Log -Message "Set-Processes cmdToKill - $cmdToKill"
-          if (($cmdToKill -ne "") -and ($cmdToKill -ne " ") -and (-not ([string]::IsNullOrEmpty($cmdToKill)))) {
+          if (!(Test-forVariable -varName $cmdToKill)) {
             #get-wmiobject win32_process | Where-Object commandline -like $cmdToKill | remove-wmiobject
             $processesA = Get-WmiObject Win32_Process -Filter "name = '$ProcessesNames'"
             Write-Log -Message "Set-Processes processesA - $processesA "
@@ -578,20 +578,20 @@ Function Set-EXE {
     Write-Log -Message "Will run $exe with $CMDParam."
 
     if (($exe -like "\*") -or (((-not ($exe -like "*:\*")) -and (-not ($exe -like "*%*"))))) { $exe = "$SourcePath\$exe"}     
-    if (($RC -ne '') -and (-not ([string]::IsNullOrEmpty($RC)))) { $SuccessCode = "$SuccessCode,$RC" }
+    if (!(Test-forVariable -varName $RC)) { $SuccessCode = "$SuccessCode,$RC" }
 
     if ($GUID -ne ' ') { $isInstalled = (Get-InstalledApplication -ProductCode $GUID).DisplayName }
     else { $isInstalled = " " }
 
     If ($actionDate.action.ToUpper() -eq "ADD") { $action = "ADD" } else { $action = "REMOVE" }
-    If ([string]::IsNullOrEmpty($isInstalled) -or ($isInstalled -eq "") -or ($isInstalled -eq " ")) { $isInstalled = $false } else { $isInstalled = $true }
+    If (Test-forVariable -varName $isInstalled) { $isInstalled = $false } else { $isInstalled = $true }
       
     If ((($isInstalled -eq $false) -and ($action -eq "ADD")) -or (($isInstalled -eq $true) -and ($action -eq "REMOVE"))) { 
       $exe = "$exe" 
       Test-ParamFile -path $exe
       Write-Log -Message "Execute-Process -Path $exe -Parameters $CMDParam"
       Execute-Process -Path $exe -Parameters $CMDParam -WindowStyle 'Hidden' -IgnoreExitCodes $SuccessCode 
-      If ([string]::IsNullOrEmpty($TAG) -or ($TAG -eq "") -or ($TAG -eq " ")) { Set-Tags -actionDate "$TAG" }
+      If (Test-forVariable -varName $TAG) { Set-Tags -actionDate "$TAG" }
     } else { 
       if ($action -eq "ADD") { Write-Log -Message "GUID present, application already installed. Going to next step." }
       if ($action -eq "REMOVE") { Write-Log -Message "GUID not present, nothing to uninstall. Going to next step." }
@@ -612,7 +612,7 @@ Function Set-WinFeature {
 
     $FeatureName = $actionDate.featureName
 
-    if (($FeatureName -ne '') -and (-not ([string]::IsNullOrEmpty($FeatureName)))) {
+    if (!(Test-forVariable -varName $FeatureName)) {
       $FeatureNames = Get-MultiData -SrcData $FeatureName
 
       foreach ($feature in $FeatureNames) {
@@ -798,60 +798,64 @@ Function Set-DUMMYFunction {
 
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-Function Set-Pin { #calosc do zrobienia
+Function Set-Pin { 
   param(
       [Parameter(Mandatory = $True)]
       $actionDate
   )
 
-  If ($actionDate.action.ToUpper() -eq "ADD") {
-  } elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
-  } elseif ($actionDate.action.ToUpper() -eq "COPY") {
-  } elseif ($actionDate.action.ToUpper() -eq "MOVE") {
-  } elseif ($actionDate.action.ToUpper() -eq "EDIT") {
-  }
+  $FilePath = $actionDate.filePath
+  $FilePaths = Get-MultiData -SrcData $FilePath
 
-  $Action = $Data[0]
-  $FilePath = $Data[1]
+  $LnkType = $actionDate.lnkType
+  $LnkTypes = Get-MultiData -SrcData $LnkType
 
   $forAllUsers = $False
+  $x = 0
 
-  Write-Log -Message "Starting setting pinned item acctions ."
+  foreach ($file in $FilePaths) {
+  
+    if ($FilePaths.Length -eq $LnkTypes.Length) { $type = $LnkTypes[$x] }
+    else { $type = $LnkType }
 
-  if ($FilePath -like "*%allusers%*") { $forAllUsers = $True }
+    if (($file -like "*%allusers%*") -or ($file -like "%allusers%*")) { $forAllUsers = $True }
+    $file = Set-FullStringsFromVars -VarToCheck $file
+
+    Write-Log -Message "Starting setting pinned item acctions ."
 
     if ($forAllUsers) {
-        ForEach ($User In (Get-WmiObject Win32_UserProfile -F "Special != True" | Select-Object -Expand LocalPath)) {
-            $FilePath = $FilePath.Replace("%allusers%\","")
-            $FilePath = "$($User)$FilePath"
-            
-            Write-Log -Message "FilePath - $FilePath "
+      ForEach ($User In (Get-WmiObject Win32_UserProfile -F "Special != True" | Select-Object -Expand LocalPath)) {
+        $file = $file.Replace("%allusers%\","")
+        $file = "$($User)$file"
+              
+        Write-Log -Message "FilePath - $file "
 
-            If ($actionName -eq "ADD") {
-                if (($Action -eq "Taskbar") -or ($Action -eq "taskbar") -or ($Action -eq "TASKBAR")) { Set-PinnedApplication -Action "PintoTaskbar" -FilePath $FilePath }
-                elseif (($Action -eq "StartMenu") -or ($Action -eq "startmenu") -or ($Action -eq "STARTMENU")) { Set-PinnedApplication -Action "PintoStartMenu" -FilePath $FilePath }
-                else {}
-            }
-            If ($actionName -eq "REMOVE") { 
-                if (($Action -eq "Taskbar") -or ($Action -eq "taskbar") -or ($Action -eq "TASKBAR")) { Set-PinnedApplication -Action "UnpinfromTaskbar" -FilePath $FilePath }
-                elseif (($Action -eq "StartMenu") -or ($Action -eq "startmenu") -or ($Action -eq "STARTMENU")) { Set-PinnedApplication -Action "UnpinfromStartMenu" -FilePath $FilePath }
-                else {}
-            }  
+        If ($actionDate.action.ToUpper() -eq "ADD") {
+          if ($type.ToUpper() -eq "TASKBAR") { Set-PinnedApplication -Action "PintoTaskbar" -FilePath $FilePath }
+          elseif ($type.ToUpper() -eq "STARTMENU") { Set-PinnedApplication -Action "PintoStartMenu" -FilePath $FilePath }
+          else {}
         }
-    } else {
-        If ($actionName -eq "ADD") {
-            if (($Action -eq "Taskbar") -or ($Action -eq "taskbar") -or ($Action -eq "TASKBAR")) { Set-PinnedApplication -Action "PintoTaskbar" -FilePath $FilePath }
-            elseif (($Action -eq "StartMenu") -or ($Action -eq "startmenu") -or ($Action -eq "STARTMENU")) { Set-PinnedApplication -Action "PintoStartMenu" -FilePath $FilePath }
-            else {}
-        }
-        If ($actionName -eq "REMOVE") { 
-            if (($Action -eq "Taskbar") -or ($Action -eq "taskbar") -or ($Action -eq "TASKBAR")) { Set-PinnedApplication -Action "UnpinfromTaskbar" -FilePath $FilePath }
-            elseif (($Action -eq "StartMenu") -or ($Action -eq "startmenu") -or ($Action -eq "STARTMENU")) { Set-PinnedApplication -Action "UnpinfromStartMenu" -FilePath $FilePath }
-            else {}
+        If ($actionDate.action.ToUpper() -eq "REMOVE") { 
+          if ($type.ToUpper() -eq "TASKBAR") { Set-PinnedApplication -Action "UnpinfromTaskbar" -FilePath $FilePath }
+          elseif ($type.ToUpper() -eq "STARTMENU") { Set-PinnedApplication -Action "UnpinfromStartMenu" -FilePath $FilePath }
+          else {}
         }  
+      }
+    } else {
+      If ($actionDate.action.ToUpper() -eq "ADD") {
+        if ($type.ToUpper() -eq "TASKBAR") { Set-PinnedApplication -Action "PintoTaskbar" -FilePath $FilePath }
+        elseif ($type.ToUpper() -eq "STARTMENU") { Set-PinnedApplication -Action "PintoStartMenu" -FilePath $FilePath }
+        else {}
+      }
+      If ($actionDate.action.ToUpper() -eq "REMOVE") { 
+        if ($type.ToUpper() -eq "TASKBAR") { Set-PinnedApplication -Action "UnpinfromTaskbar" -FilePath $FilePath }
+        elseif ($type.ToUpper() -eq "STARTMENU") { Set-PinnedApplication -Action "UnpinfromStartMenu" -FilePath $FilePath }
+        else {}
+      }  
     }
 
-  
+    $x++
+  }
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -938,10 +942,10 @@ directory_4:
   $newName = $actionDate.newName
 
   $isForce = $actionDate.force
-  if (($isForce -ne '') -and (-not ([string]::IsNullOrEmpty($isForce)))) { $isAllForce = Get-MultiData -SrcData $isForce }
+  if (!(Test-forVariable -varName $isForce)) { $isAllForce = Get-MultiData -SrcData $isForce }
 
   $mode = $actionDate.mode
-  if (($mode -ne '') -and (-not ([string]::IsNullOrEmpty($mode)))) { $allModes = Get-MultiData -SrcData $mode }
+  if (!(Test-forVariable -varName $mode)) { $allModes = Get-MultiData -SrcData $mode }
 
   $forAllUsers = $False
   if (($Directory -like "*%allusers%*") -or ($Directory -like "%allusers%*")) { $forAllUsers = $True }
@@ -951,7 +955,7 @@ directory_4:
     $x = 0
     foreach ($dir in $Dirs) {
       if ($isAllForce.Length -eq $Dirs.Length) { $localForce = $isAllForce[$x] }
-      elseif (($isForce -ne '') -and (-not ([string]::IsNullOrEmpty($isForce)))) { $localForce = $isForce }
+      elseif (!(Test-forVariable -varName $isForce)) { $localForce = $isForce }
       else { $localForce = $true }
 
       if ($forAllUsers -eq $True) {
@@ -970,11 +974,11 @@ directory_4:
     $x = 0
     foreach ($dir in $Dirs) {
       if ($allModes.Length -eq $Dirs.Length) { $dirMode = $allModes[$x] }
-      elseif (($allModes -ne '') -and (-not ([string]::IsNullOrEmpty($allModes)))) { $dirMode = $mode }
+      elseif (!(Test-forVariable -varName $allModes)) { $dirMode = $mode }
       else { $dirMode = $true }
 
       if ($isAllForce.Length -eq $Dirs.Length) { $localForce = $isAllForce[$x] }
-      elseif (($isForce -ne '') -and (-not ([string]::IsNullOrEmpty($isForce)))) { $localForce = $isForce }
+      elseif (Test-forVariable -varName $isForce) { $localForce = $isForce }
       else { $localForce = $true }
 
       $LastChar = $Directory.Substring($dir.get_Length()-1)
@@ -1178,13 +1182,13 @@ Function Set-Script {
 
       Write-Log -Message "Trying to start: $scriptDirectory\$script $scriptParameter"
 
-      if (($scriptDirectory -eq "") -or ([string]::IsNullOrEmpty($scriptDirectory))) { $scriptPath = "$SourcePath\$script" } 
+      if (Test-forVariable -varName $scriptDirectory) { $scriptPath = "$SourcePath\$script" } 
       else { $scriptPath = "$scriptDirectory\$script" }
   
       Test-ParamFile -path "$scriptPath"
 
       if ($script.ToLower() -like "*.vbs") {
-        if (($scriptParameter -eq "") -or ([string]::IsNullOrEmpty($scriptParameter))) { 
+        if (Test-forVariable -varName $scriptParameter) { 
           Write-Log -Message "Command to run: $scriptPath"; 
           & wscript /nologo "$scriptPath" 
         } else { 
@@ -1192,7 +1196,7 @@ Function Set-Script {
           & wscript /nologo "$scriptPath" "$scriptParameter" 
         } 
       } elseif ($script.ToLower() -like "*.cmd") { 
-        if (($scriptParameter -eq "") -or ([string]::IsNullOrEmpty($scriptParameter))) { 
+        if (Test-forVariable -varName $scriptParameter) { 
           Write-Log -Message "Command to run: $scriptPath"; 
           Start-Process "$scriptPath" 
         } else {
@@ -1200,7 +1204,7 @@ Function Set-Script {
           Start-Process "$scriptPath" "$scriptParameter" 
         }
       } elseif ($script.ToLower() -like "*.ps1") { 
-        if (($scriptParameter -eq "") -or ([string]::IsNullOrEmpty($scriptParameter))) { 
+        if (Test-forVariable -varName $scriptParameter) { 
           Write-Log -Message "Command to run: $scriptPath"; 
           Invoke-Expression "& '$scriptPath'" 
         } else { 
@@ -1302,7 +1306,7 @@ file_:
   $isForce = $actionDate.force
   $isExit = $actionDate.exit
 
-  if (($isExit -eq "") -or ([string]::IsNullOrEmpty($isExit))) { $isExit = "noExit" }
+  if (Test-forVariable -varName $isExit) { $isExit = "noExit" }
 
   if ($actionDate.action.ToUpper() -eq "REMOVE") {
     foreach ($file in $FileNames) {
@@ -1469,6 +1473,210 @@ file_:
 
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-DetectionMethod {
+  param(
+      [Parameter(Mandatory = $True)]
+      $actionDate
+  )
+
+  #INSTALL,ADD,DetectionMethod,GUID=PKGName=file=registry;regvalue,ExitCodeValue;allNegative    
+  #can test for negative or positive. If - is added as first sign on GUID, PKGName,File orRegistry then script will end if -not will be as result,
+  #if + or simply - will be missing test will be done for positive.
+
+  $GUIDResult     = 0
+  $TAGResult      = 0
+  $FileResult     = 0
+  $RegResult      = 0
+  $ExitScript     = $False
+
+
+  if (Test-forVariable -varName $actionDate.exitCode) { $ExitCodeVarName = 0 }
+  else { $ExitCodeVarName = $actionDate.exitCode }
+
+  if (Test-forVariable -varName $actionDate.allNegative) { $allNegative = 'false' }
+  else { $allNegative = $actionDate.allNegative }
+
+  $AppGUID = $actionDate.GUID
+  if (Test-forVariable -varName $AppGUID) { $testForGUID = $false } 
+  else { 
+    if ($AppGUID -like "-*") { $GUIDForNegative = $True; $AppGUID = $AppGUID.substring(1) } 
+    else { $GUIDForNegative = $False }
+    $testForGUID = $true
+  }
+
+  $AppPKGName = $actionDate.TAG
+  if (Test-forVariable -varName $AppPKGName) { $testForPKGName = $false } 
+  else {
+    if ($AppPKGName -like "-*") { $TAGForNegative = $True; $AppPKGName = $AppPKGName.substring(1) }
+    else { $TAGForNegative = $False }
+    $testForPKGName = $true
+  }
+
+  $File = $actionDate.filePath 
+  if ($File -like "-*") { $FILEForNegative = $True; $File = $File.substring(1) } 
+  else { $FILEForNegative = $False } 
+  
+  $RegPath = $actionDate.registryPath
+  if ($RegPath -like "-*") { $REGForNegative = $True; $RegPath = $RegPath.substring(1) } 
+  else { $REGForNegative = $False }
+
+  $RegVarName = $actionDate.registryVariableName
+  $RegValue =$actionDate.registryVariableValue
+
+
+  if ($testForGUID) {
+    $AppGUIDs = Get-MultiData -SrcData $AppGUID
+ 
+    if (($AppGUIDs.Length -gt 0) -and ($AppGUIDs[0] -ne "") -and ($null -ne $AppGUIDs[0])) {
+      foreach ($GUID in $AppGUIDs) {
+        if (($GUID -ne "") -and ($null -ne $GUID)) {
+          $isInstalled = (Get-InstalledApplication -ProductCode $GUID).DisplayName
+          Write-Log -Message "isInstalled - $isInstalled"
+
+          If ([string]::IsNullOrEmpty($isInstalled) -or ($isInstalled -eq "") -or $isInstalled -eq " ") {
+            $ProdCode = (Get-InstalledApplication -Name $GUID).ProductCode
+                  
+            If ([string]::IsNullOrEmpty($ProdCode) -or ($ProdCode -eq "") -or $ProdCode -eq " ") { $GUIDResult = 1 } 
+            else { $GUIDResult = 0 }
+          } else { $GUIDResult = 0 }
+        } else { $GUIDResult = 2 }
+      }
+    else { $GUIDResult = 2 }
+  }
+  
+
+  
+  if ($testForPKGName) {
+
+  }
+    
+<# 	
+
+    if (($AppPKGName -ne "NULL") -and ($AppPKGName -ne "null")) {
+        $TAGFile = "$TagsDir\$AppPKGName.tag"
+        Write-Log -Message "Testing: - $TAGFile"
+
+        if (Test-Path $TAGFile) { $TAGResult = 0 }
+        else { $TAGResult = 1 }
+    } else { $TAGResult = 2 }
+
+    if (($File -ne "NULL") -and ($File -ne "null")) {
+        if (Test-Path $File) { $FileResult = 0 }
+        else { $FileResult = 1 }
+    } else { $FileResult = 2 }
+
+    if (($RegPath -ne "NULL") -and ($RegPath -ne "null")) {
+        $RegPathArr = $RegPath.split('\')
+        $TMPRegPath = ""
+        $TMPRegVar = $RegPathArr[-1]
+        $x = 0
+            foreach ($arrItem in $RegPathArr) { 
+                If ($arrItem -ne $TMPRegVar) {
+                    If ($x -eq 0) { $TMPRegPath = $arrItem }
+                    else { $TMPRegPath = "$TMPRegPath\$arrItem" }
+                }
+                $x++
+            }
+
+        $TestConstainer = Test-Path $RegPath -PathType 'Container'
+        if (($RegValue -eq "NULL") -or ($RegValue -eq "null")) {
+            Write-Log -Message "No regValue option."
+            if ($TestConstainer) { $RegResult = 0 
+            } else { 
+                $TestRegVal = Test-RegistryValue -Key $TMPRegPath -Value $TMPRegVar
+                if ($TestRegVal) { $RegResult = 0 }
+                else { $RegResult = 1 }      
+            }
+        } else {
+            Write-Log -Message "RegValue option."
+            If (Test-RegistryValue -Key $TMPRegPath -Value $TMPRegVar) { 
+                $ReadReg = Get-ItemPropertyValue $TMPRegPath -Name $TMPRegVar
+                Write-Log -Message "ReadReg - $ReadReg"
+                if (($ReadReg -like "*$RegValue") -or ($ReadReg -like "*$RegValue*") -or ($ReadReg -like "$RegValue") -or ($ReadReg -like "$RegValue*")) { $RegResult = 0 }
+                else { $RegResult = 1 }
+            } else { $RegResult = 1 }
+        }
+    } else { $RegResult = 2 }
+
+
+    if ((($GUIDResult -eq 0) -and ($GUIDForNegative -eq $True)) -or (($GUIDResult -eq 1) -and ($GUIDForNegative -eq $False))) { $GUIDResult = 1 }
+    else { $GUIDResult = 0 }
+
+    if ((($TAGResult -eq 0) -and ($TAGForNegative -eq $True)) -or (($TAGResult -eq 1) -and ($TAGForNegative -eq $False))) { $TAGResult = 1 }
+    else { $TAGResult = 0 }
+
+    if ((($FileResult -eq 0) -and ($FILEForNegative -eq $True)) -or (($FileResult -eq 1) -and ($FILEForNegative -eq $False))) { $FileResult = 1 }
+    else { $FileResult = 0 }
+
+    if ((($RegResult -eq 0) -and ($REGForNegative -eq $True)) -or (($RegResult -eq 1) -and ($REGForNegative -eq $False))) { $RegResult = 1 }
+    else { $RegResult = 0 }
+
+
+    Write-Log -Message "Detection method, testing results are:"
+    Write-Log -Message "GUIDResult: $GUIDResult"
+    Write-Log -Message "GUIDForNegative: $GUIDForNegative"
+    Write-Log -Message "TAGResult: $TAGResult"
+    Write-Log -Message "TAGForNegative: $TAGForNegative"
+    Write-Log -Message "FileResult: $FileResult"
+    Write-Log -Message "FILEForNegative: $FILEForNegative"
+    Write-Log -Message "RegResult: $RegResult"
+    Write-Log -Message "REGForNegative: $REGForNegative"
+
+
+    if ($allNegative -eq 'true') { 
+        if (($GUIDForNegative -eq $True) -and ($GUIDResult -ne 0)) { $ExitScriptA = $True }
+        elseif (($GUIDForNegative -eq $False) -and ($GUIDResult -eq 0)) { $ExitScriptA = $True }
+        else { $ExitScriptA = $False }
+
+        if (($TAGForNegative -eq $True) -and ($TAGResult -ne 0)) { $ExitScriptB = $True }
+        elseif (($TAGForNegative -eq $False) -and ($TAGResult -eq 0)) { $ExitScriptB = $True }
+        else { $ExitScriptB = $False }
+
+        if (($FILEForNegative -eq $True) -and ($FileResult -ne 0)) { $ExitScriptC = $True } 
+        elseif (($FILEForNegative -eq $False) -and ($FileResult -eq 0)) { $ExitScriptC = $True }
+        else { $ExitScriptC = $False }
+
+        if (($REGForNegative -eq $True) -and ($RegResult -ne 0)) { $ExitScriptD = $True } 
+        elseif (($REGForNegative -eq $False) -and ($RegResult -eq 0)) { $ExitScriptD = $True }
+        else { $ExitScriptD = $False }
+
+        Write-Log -Message "ExitScriptA: $ExitScriptA"
+        Write-Log -Message "ExitScriptB: $ExitScriptB"
+        Write-Log -Message "ExitScriptC: $ExitScriptC"
+        Write-Log -Message "ExitScriptD: $ExitScriptD"
+
+        if (($ExitScriptA -eq $True) -and ($ExitScriptB -eq $True) -and ($ExitScriptC -eq $True) -and ($ExitScriptD -eq $True)) { $ExitScript = $False }
+        else { $ExitScript = $True }
+    } else {
+        if (($GUIDResult -eq 0) -and ($TAGResult -eq 0) -and ($FileResult -eq 0) -and ($RegResult -eq 0)) { $ExitScript = $True } #tests passed so script can stop - nothing to change
+        else { $ExitScript = $False } #some of the tests failed, so script need to proceed
+    }
+    
+    $ExitCodeVarName = $ExitCodeVarName.replace(' ','')
+    
+    if (($ExitCodeVarName -like "NULL*") -or ($ExitCodeVarName -like "null*") -or ($ExitCodeVarName -like "NULL") -or ($ExitCodeVarName -like "null")) { $ExitCodeVarName = 0 } 
+    else { 
+        try {
+            $null = Get-Variable -Scope Global -Name $ExitCodeVarName -ErrorAction Stop
+            $variableExists = $true
+        } catch { $variableExists = $false }
+
+        if ($variableExists) { $ExitCodeVarName = Get-Variable -Scope Global $ExitCodeVarName -ValueOnly }
+    }
+
+    [int]$intNum = [convert]::ToInt32($ExitCodeVarName, 10)
+
+    If ($ExitScript -eq $True) { Write-Log -Message "Tests passed, going to next function, RC = 0." }
+    else  {   
+        Write-Log -Message "Will Exit Script - ExitCodeVarName = $ExitCodeVarName."
+        Set-Finalize -ExitCode $intNum 
+    } #>
+  
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-Tags {
   param(
       [Parameter(Mandatory = $True)]
@@ -1607,5 +1815,49 @@ function Test-IsGuid {
   [regex]$guidRegex = '(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$'
   
   return $ObjectGuid -match $guidRegex
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Get-DiscSpace {
+	param( 
+		$drive="$Env:HOMEDRIVE"
+	)
+
+  $toGB =  (1024*1024*1024)
+  $toMB =  (1024*1024)
+
+  $space = Get-PSDrive $drive | Select-Object Used,Free
+
+  $freeMB = $space.Free / $toMB
+  $freeGB = $space.Free / $toGB
+  $usedMB = $space.Used / $toMB
+  $usedGB = $space.Used / $toGB
+
+  $Total = $freeGB + $usedGB 
+    
+  Write-Log -Message "Drive $drive space statistics:"
+  Write-Log -Message "Free space in MB: $freeMB."
+  Write-Log -Message "Free space in GB: $freeGB."
+  Write-Log -Message "Used space in MB: $usedMB."
+  Write-Log -Message "Used space in MB: $usedGB."
+  Write-Log -Message "Total space in GB: $Total."
+
+  Return $freeMB
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Test-forVariable {
+	param( 
+		$varName
+	)
+
+  if ([string]::IsNullOrEmpty($varName) -or ($varName -eq "") -or ($varName -eq " ") -or ($varName.ToUpper() -eq "NULL")) { $RC = $TRUE }
+  else { $RC = $FALSE }
+  
+  Return $RC
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
