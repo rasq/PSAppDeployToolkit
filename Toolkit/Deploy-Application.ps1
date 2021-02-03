@@ -54,6 +54,7 @@ Param (
 )
 
 #Try {  
+
   Function Set-ADTVariable {
     param(
         [Parameter(Mandatory = $True)]
@@ -109,7 +110,7 @@ Param (
 	##*===============================================
   ## Variables: Application
   [string]$Global:TmpDeployMode = 'null'
-  [string]$ClientName = Set-ADTVariable -YamlData $YamlObject.properties.ClientName -DefaultValue ''
+  [string]$Global:ClientName = Set-ADTVariable -YamlData $YamlObject.properties.ClientName -DefaultValue 'Default'
   [string]$PKGName = Set-ADTVariable -YamlData $YamlObject.properties.PKGName -DefaultValue ''
   
     if ([string]::IsNullOrWhitespace($ClientName) -or ($ClientName -eq "") -or ($null -eq $ClientName)) {
@@ -121,7 +122,7 @@ Param (
 				$DeployMode = 'Silent' 
 			} else { $Global:TmpDeployMode = $DeployMode } 
 			$Global:clientBasedBP = $True	
-			Set-AccountBP -CN $ClientName
+			Set-CustomStandards -iniName $ClientName
 		}
 
   [string]$mainPKGGUID = Set-ADTVariable -YamlData $YamlObject.properties.mainPKGGUID -DefaultValue ''

@@ -1,0 +1,152 @@
+---
+ properties:
+  ClientName: ""
+  PKGName: ""
+  #mainPKGGUID: ""
+  #killProcessesInstall: ""
+  #killProcessesUninstall: ""
+  FriendlyProcessName: ""
+  blnRebootNeeded: ""
+  LanguagesToUse: ""
+  appVendor: "" 
+  appName: "" 
+  appVersion: "" 
+  appArch: "" 
+  appLang: "EN" 
+  appRevision: "01" 
+  appScriptVersion: "1.0.0" 
+  appScriptDate: "XX/XX/20XX" 
+  appScriptAuthor: "<author name>" 
+  installName: "" 
+  installTitle: "" 
+  deployAppScriptFriendlyName: "Deploy Application" 
+  deployAppScriptVersion: "3.8.3" 
+  deployAppScriptDate: "30/09/2020" 
+ preInstallation:
+  msi_1:
+    action: "ADD"
+    appName: "testApp"
+    appVer: "1.0.0"
+    msiFile: "app.msi"
+    mstFile: "app.mst"
+    mspFile: "app.msp"
+    GUID: "appFromReg"
+    processName: "adf.vbs"
+    params: ""
+  exe_1:
+    action: "REMOVE"
+    appName: "testApp1"
+    appVer: "1.0.0"
+    exeFile: "app.exe"
+    GUID: "appFromReg"
+    params: ""
+    rc: "1212,1314"
+  directory_1:
+    action: "REMOVE"
+    targetDir: "c:\\asd"
+    force: "true"
+    mode: "recursively"
+  directory_2:
+    action: "ADD"
+    targetDir: "c:\\asd"
+  directory_3:
+    action: "COPY"
+    targetDir: "c:\\asd"
+    sourceDir: "c:\\test\\"
+  directory_4:
+    action: "MOVE"
+    targetDir: "c:\\asd"
+    sourceDir: "c:\\test\\"
+  directory_5:
+    action: "RENAME"
+    targetDir: "c:\\asd"
+    newName: "test"
+ installation:
+  script_1:
+    scriptName: "script.ps1"
+    scriptDir: "c:\\asd"
+    scriptParam: "-uninstall true"
+  sleep_1:
+    time: "1000s"
+  dll_1:
+    action: "ADD"
+    dllFile: "lib.dll"
+    dllPath: "c:\\ddad"
+  winfeature_1:
+    action: "ADD"
+    feature: "net4"
+  archive_1:
+    action: "ADD"
+    path: "c:\\net4" 
+    archName: "newZip"
+    type: "7Z"
+  archive_2:
+    action: "UNPACK"
+    path: "c:\\net4.zip"
+    targetPath: "c:\\net4.zip"
+    type: "7Z"
+  unblock_1:
+    path: "c:\\net4.zip"
+ postInstallation:
+  service_1:
+    actiona: "STOP"
+    serviceName: "script.exe"
+  service_2:
+    actiona: "DISABLE"
+    serviceName: "script.exe"
+  service_3:
+    actiona: "REMOVE"
+    serviceName: "script.exe"
+  service_4:
+    actiona: "ADD"
+    serviceName: "script.exe"
+    serviceBinary: ""
+    startupType: ""
+    dependsOn: ""
+  process_1:
+    actiona: "STOP"
+    processName: "script.exe"
+    processCMD: ""
+    mode: "BLOCK"
+  process_2:
+    actiona: "KILL"
+    processName: "script.exe"
+    processCMD: ""
+  process_3:
+    actiona: "START"
+    processName: "script.exe"
+    processCMD: ""
+    mode: "UNBLOCK"
+  settings_1:
+    actiona: "NETUSE"
+    mainValue: "\\\\sadada"
+  settings_2:
+    actiona: "CHROMEUPDATES"
+  settings_3:
+    actiona: "REBOOT"
+    mainValue: "30s"
+  settings_4:
+    actiona: "CULTURE"
+    mainValue: "en_EN"
+  uninstallation:
+    file_1:
+      action: "REMOVE"
+      inPath: "c:\\"
+      outPath: "c:\\test\\"
+      fileName: "app.exe"
+      force: "false"
+    file_2:
+      action: "COPY"
+      inPath: "c:\\"
+      outPath: "c:\\test\\"
+      fileName: "app.exe"
+      force: "false"
+    file_3:
+      action: "MOVE"
+      inPath: "c:\\"
+      outPath: "c:\\test\\"
+      fileName: "app.exe"
+      force: "false"
+
+
+
