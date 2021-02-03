@@ -32,10 +32,10 @@ Function Set-YAMLActions {
     $yamlData.keys | ForEach-Object {
         $name = $_
         $actionDate = $yamlData.$name
-        if ($name -like "msi_*") { Set-MSI -actionDate $actionDate }
-        if ($name -like "msix_*") { Set-MSIX -actionDate $actionDate }
+        if ($name -like "msi_*") { Set-MSI -actionDate $actionDate }                            #to test, basic logic was done.
+        if ($name -like "msix_*") { Set-MSIX -actionDate $actionDate }                          #to test, basic logic was done.
         if ($name -like "exe_*") { Set-EXE -actionDate $actionDate }                            #to test, basic logic was done. Need to add version check
-        if ($name -like "appv_*") { Set-APPV -actionDate $actionDate }
+        if ($name -like "appv_*") { Set-APPV -actionDate $actionDate }                          #to test, basic logic was done.
         if ($name -like "appvCG_*") { Set-APPVCG -actionDate $actionDate }
         if ($name -like "file_*") { Set-File -actionDate $actionDate }                          #to test, basic logic was done. Need to add: move, add, edit
         if ($name -like "directory_*") { Set-Directory -actionDate $actionDate }                #to test, basic logic was done.
@@ -1475,8 +1475,8 @@ file_:
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-DetectionMethod {
   param(
-      [Parameter(Mandatory = $True)]
-      $actionDate
+    [Parameter(Mandatory = $True)]
+    $actionDate
   )
 
   #INSTALL,ADD,DetectionMethod,GUID=PKGName=file=registry;regvalue,ExitCodeValue;allNegative    
@@ -1692,6 +1692,118 @@ Function Set-DetectionMethod {
   else  {   
     Write-Log -Message "Will Exit Script - ExitCodeVarName = $ExitCodeVarName."
     Set-Finalize -ExitCode $intNum 
+  }
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-MSIX {
+  param(
+    [Parameter(Mandatory = $True)]
+    $actionDate
+  )
+
+  $MSIXFile = $actionDate.file
+  $MSIXName = $actionDate.name
+  $MSIXContext = $actionDate.context
+  $VolumeName = $actionDate.volumeName
+  $AppID = $actionDate.appID
+  $CMDToRun = $actionDate.cmdToRun
+
+  $x = 0
+    
+  If ($actionDate.action.ToUpper() -eq "ADD") {
+    $MSIXFiles = Get-MultiData -SrcData $MSIXFile
+    foreach ($msix in $MSIXFiles) {
+      $msix = Set-FullStringsFromVars -VarToCheck $msix 
+      if (($msix -like "\*") -or (((-not ($msix -like "*:\*")) -and (-not ($msix -like "*%*"))))) { $msix = "$SourcePath\$msix"}  
+      Test-IfParamFileExist -path $msix
+      Add-AppPackage -path "$msix"
+    }
+  } ElseIf ($actionDate.action.ToUpper() -eq "REMOVE"){
+    $MSIXNames = Get-MultiData -SrcData $MSIXName
+    $MSIXsContext = Get-MultiData -SrcData $MSIXContext
+    foreach ($name in $MSIXNames) {
+      if ($MSIXNames.Length -eq $MSIXsContext.Length) {
+        if (Test-forVariable -varName $MSIXsContext[$x]) { Remove-AppPackage -Package $name }
+        else { Remove-AppPackage -Package $name $MSIXContext[$x] }
+      } else {
+        if (Test-forVariable -varName $MSIXContext) { Remove-AppPackage -Package $name }
+        else { Remove-AppPackage -Package $name $MSIXContext }
+      }
+      $x++
+    }
+  } ElseIf ($actionDate.action.ToUpper() -eq "MOVE"){
+    $MSIXNames = Get-MultiData -SrcData $MSIXName
+    $VolumeNames = Get-MultiData -SrcData $VolumeName
+    foreach ($name in $MSIXNames) {
+      if ($MSIXNames.Length -eq $MSIXsContext.Length) { Move-AppPackage -Package $name -Volume $VolumeNames[$x] }
+      elseif (Test-forVariable -varName $VolumeName) { Move-AppPackage -Package $name -Volume $VolumeName }
+      else {  
+        Write-Log -Message "Will Exit Script."
+        Set-Finalize -ExitCode $intNum  
+      }
+      $x++
+    }  
+  } ElseIf ($actionDate.action.ToUpper() -eq "RUN"){
+    $MSIXNames = Get-MultiData -SrcData $MSIXName
+    $AppIDs = Get-MultiData -SrcData $AppID
+    $CMDsToRun = Get-MultiData -SrcData $CMDToRun
+    foreach ($name in $MSIXNames) {
+      if (($MSIXNames.Length -eq $AppIDs.Length) -and ($MSIXNames.Length -eq $CMDsToRun.Length)) {
+        $CMDsToRun[$x] = Set-FullStringsFromVars -VarToCheck $CMDsToRun[$x]
+        Invoke-CommandInDesktopPackage -PackageFamilyName $name -appid $AppIDs[$x] -command $CMDsToRun[$x] -preventbreakaway
+      }
+      $x++
+    }
+  }       
+
+  #Move-AppPackage -Package "Caphyon.MyApp_1.0.0.0_neutral__8wekyb3d8bbwe" -Volume E:\
+  #To dismount a volume you can use Dismount-AppVolume -Volume E:\
+  #To remove a volume use Remove-AppVolume -Volume E:\
+  #Invoke-CommandInDesktopPackage -PackageFamilyName "Caphyon.SampleMSIXPackage_r21n0w1rc5s2y" -appid "SampleMSIXPackage" -command "cmd.exe" -preventbreakaway
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-APPV {
+  param(
+    [Parameter(Mandatory = $True)]
+    $actionDate
+  )
+
+  $AppVFile = $actionDate.file
+  $Context = $actionDate.context
+  $LogType = $actionDate.logType
+  $AppVPKGName = $actionDate.appVPKGName
+
+  $x = 0
+
+  If ($actionDate.action.ToUpper() -eq "ADD") {
+    $AppVFiles = Get-MultiData -SrcData $AppVFile
+    $Contexts = Get-MultiData -SrcData $Context
+    $LogTypes = Get-MultiData -SrcData $LogType
+    $AppVPKGNames = Get-MultiData -SrcData $AppVPKGName
+  
+    foreach ($appv in $AppVFiles) {
+      if (($AppVFiles.Length -eq $Contexts.Length) -and ($AppVFiles.Length -eq $LogTypes.Length) -and ($AppVFiles.Length -eq $AppVPKGNames.Length)) {
+        If ($appv -like "*.appv") { $appv = $appv }
+        else { $appv = "$appv.appv" }
+        
+        $appv = Set-FullStringsFromVars -VarToCheck $appv
+        if (($appv -like "\*") -or (((-not ($appv -like "*:\*")) -and (-not ($appv -like "*%*"))))) { $appv = "$SourcePath\$appv"}  
+        Test-IfParamFileExist -path $appv
+
+        Get-AppvClientPackage -Name $AppVPKGNames[$x] | Stop-AppvClientPackage | Remove-AppvClientPackage
+        Add-AppvClientPackage -Path $appv | Publish-AppvClientPackage -Global | Mount-AppvClientPackage -Verbose	
+      }
+      $x++
+    }
+  } elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
+    $AppVPKGNames = Get-MultiData -SrcData $AppVPKGName
+    foreach ($appv in $AppVPKGNames) { Get-AppvClientPackage -Name $AppVPKGName | Stop-AppvClientPackage | Remove-AppvClientPackage }
   }
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
