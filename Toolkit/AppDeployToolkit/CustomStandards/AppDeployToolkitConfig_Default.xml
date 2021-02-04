@@ -14,18 +14,18 @@
 
 	<!--General settings-->
 	<General_Options>
-		<Account_Name>Default</Acc_Name>
+		<Account_Name>Default</Account_Name>
 		<!-- Account name, used for some display messages. -->
 		<Windows_Time>10800</Windows_Time>
 		<!-- Time for windows - how long window will wait for user interaction. -->
 		<Use_LanguageWindow>False</Use_LanguageWindow>
-		<!-- If choose language window will be displayed and used. -->
+		<!-- If choose language window will be displayed and used. in interactive mode -->
 		<Use_InstKillWindow>False</Use_InstKillWindow>
-		<!-- If killing (process) windows will be displayed durring installation. -->
+		<!-- If killing (process) windows will be displayed durring installation. in interactive mode -->
 		<Use_UninstKillWindow>False</Use_UninstKillWindow>
-		<!-- If killing (process) windows will be displayed durring uninstallation. -->
+		<!-- If killing (process) windows will be displayed durring uninstallation. in interactive mode -->
 		<Use_KillWindowAllwaysOn>False</Use_KillWindowAllwaysOnFalse>
-		<!-- If kill window will be displayed even if noting to kill. -->
+		<!-- If kill window will be displayed even if noting to kill. in interactive mode -->
     <Use_LogType>FILE</Use_LogType>
 		<!-- How log will be defined: FILE, REG, NONE or maybe other. -->
     <Use_TagType>FILE</Use_TagType>
@@ -36,48 +36,45 @@
 		<!-- Path to use as main tag directory. -->
     <Use_TmpDirectory>%PROGRAMDATA%\IBMSRC\%PKGName%</Use_TmpDirectory>
 		<!-- Temp directory to backup package files for unistall, repair or other purposes. -->
+    <Use_InstallProgressBar>False</Use_InstallProgressBar>
+		<!-- Set if progress bar will be visible durring installation in interactive mode. -->
+    <Use_UninstallProgressBar>False</Use_UninstallProgressBar>
+		<!-- Set if progress bar will be visible durring uninstallation in interactive mode. -->
+    <Use_ProgressBarMode>OnTOP</Use_ProgressBarMode>
+		<!-- Sets mode for progress bar: OnTOP, Standard. -->
+    <BlockOnServer>False</BlockOnServer>
+		<!-- Will block installation on Windows Server machines. -->
+    <Use_NetworkDisconnectMsg>False</Use_NetworkDisconnectMsg>
+		<!-- Display message about disconnected network. -->
+    <Use_RebootAfterInstallMsg>False</Use_RebootAfterInstallMsg>
+		<!-- Display message about reboot after installation. -->
+    <Use_RebootAfterUninstallMsg>False</Use_RebootAfterUninstallMsg>
+		<!-- Display message about reboot after uninstallation. -->
+    <Use_SuccessFinalizeMsg>False</Use_SuccessFinalizeMsg>
+		<!-- Display message about success durring finalize. -->
+    <Use_FailFinalizeMsg>False</Use_FailFinalizeMsg>
+		<!-- Display message about fail durring finalize. -->
+    <Use_StrikeWindowOnInstall>False</Use_StrikeWindowOnInstall>
+		<!-- Display nStrike window durring install. -->
+    <Use_StrikeWindowOnUninstall>False</Use_StrikeWindowOnUninstall>
+		<!-- Display nStrike window durring uninstall. -->
+    <Use_PersistentStrikeWindow>False</Use_PersistentStrikeWindow>
+		<!-- Set nStrike as persistent. -->
+    <Use_StrikesNumber>0</Use_StrikesNumber>
+		<!-- Set nStrike number. -->
 
-
-
+    <!--InstallProgressBarTitle = <FriendlyPKGName>
+    IsProcessSentenceInRed = False
+    UninstallProgressBarTitle = <FriendlyPKGName>
+    InstallProgressBarCaption = Please do not open <FriendlyProcessName>, installation in progress...
+    UninstallProgressBarCaption = Please do not open <FriendlyProcessName>, uninstallation in progress...
+    PrecheckIsInstalled = True
+    IsForceKillingVar = True
+    no3010 = True
+    blnFthStrikeActive = False
+    selfCopy = False -->
 	</General_Options>
 	<!--General settings-->
-
-
-PBMode = OnTOP
-ProgressBarActive = True
-
-
-IsProcessSentenceInRed = False
-IsNetworkDisconnect = False
-IsInstallRebootRequired = False
-IsUninstallRebootRequired = False
-IsSuccessFinalizeMsg = False
-IsFailFinalizeMsg = False
-HowManyStrikesVar = 0
-StrikeWindowActive = False
-StrikeWindowActiveUninstall = False
-StrikeWindowIsPersistent = False
-
-UninstallProgressBarActive = True
-
-InstallProgressBarTitle = <FriendlyPKGName>
-UninstallProgressBarTitle = <FriendlyPKGName>
-
-InstallProgressBarCaption = Please do not open <FriendlyProcessName>, installation in progress...
-UninstallProgressBarCaption = Please do not open <FriendlyProcessName>, uninstallation in progress...
-
-
-
-PrecheckIsInstalled = True
-IsForceKillingVar = True
-no3010 = True
-blnFthStrikeActive = False
-selfCopy = False
-
-forCitrix = False
-MSIWrapperRequired = False
-
-
 
 	<!--Toolkit Options-->
 	<Toolkit_Options>
