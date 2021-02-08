@@ -23,12 +23,35 @@
   deployAppScriptVersion: "3.8.3" 
   deployAppScriptDate: "30/09/2020" 
   installation:
-    msi_1:
+    #msi_1:
+    #  action: "ADD"
+    #  appName: "Vagrant"
+    #  tagLogName: "Vagrant_NowaVersja"
+    #  appVer: "2.2.14"
+    #  msiFile: "vagrant_2.2.14_x86_64"
+    #  GUID: "{CAAAA9DF-7CB4-4260-B6EB-2583F16DB67D}"
+    directory_1:
       action: "ADD"
-      appName: "testApp"
-      appVer: "1.0.0"
-      msiFile: "app.msi"
-      GUID: "appFromReg"
+      targetDir: "c:\\asd\\sad\\fdsfd"
+    directory_2:
+      action: "COPY"
+      sourceDir: "c:\\asd\\"
+      targetDir: "%allusers%\\asd"
   uninstallation:
+    #msi_1:
+    #  action: "REMOVE"
+    #  appName: "Vagrant"
+    #  tagLogName: "Vagrant_NowaVersja"
+    #  appVer: "2.2.14"
+    #  msiFile: "vagrant_2.2.14_x86_64"
+    #  GUID: "{CAAAA9DF-7CB4-4260-B6EB-2583F16DB67D}"
+    directory_1:
+      action: "REMOVE"
+      targetDir: "%allusers%\\asd"
+      force: "true"
+    directory_2:
+      action: "REMOVE"
+      targetDir: "c:\\asd"
+      force: "true"
 
 

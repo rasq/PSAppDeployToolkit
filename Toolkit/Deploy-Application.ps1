@@ -197,7 +197,7 @@ Param (
 
     ## <Perform Pre-Installation tasks here>
     
-    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.preInstallation
+    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.properties.preInstallation
 
 
 		##*===============================================
@@ -212,8 +212,7 @@ Param (
 		}
 
 		## <Perform Installation tasks here>
-    
-    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.installation
+    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.properties.installation
 
 
 		##*===============================================
@@ -223,7 +222,7 @@ Param (
 
 		## <Perform Post-Installation tasks here>
     
-    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.postInstallation
+    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.properties.postInstallation
 
 		## Display a message at the end of the install
 		If (-not $useDefaultMsi) { Show-InstallationPrompt -Message 'You can customize text to appear at the end of an install or remove it completely for unattended installations.' -ButtonRightText 'OK' -Icon Information -NoWait }
@@ -241,7 +240,7 @@ Param (
 
 		## <Perform Pre-Uninstallation tasks here>
     
-    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.preUninstallation
+    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.properties.preUninstallation
 
 
 		##*===============================================
@@ -257,7 +256,7 @@ Param (
 
 		# <Perform Uninstallation tasks here>
     
-    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.uninstallation
+    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.properties.uninstallation
 
 
 		##*===============================================
@@ -267,7 +266,7 @@ Param (
 
 		## <Perform Post-Uninstallation tasks here>
     
-    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.postUninstallation
+    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.properties.postUninstallation
 
 	} ElseIf ($deploymentType -ieq 'Repair') {
 		##*===============================================
@@ -280,7 +279,7 @@ Param (
 
 		## <Perform Pre-Repair tasks here>
     
-    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.preRepair
+    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.properties.preRepair
 
 		##*===============================================
 		##* REPAIR
@@ -294,7 +293,7 @@ Param (
 		}
 		# <Perform Repair tasks here>
     
-    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.repair
+    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.properties.repair
 
 		##*===============================================
 		##* POST-REPAIR
@@ -303,7 +302,7 @@ Param (
 
 		## <Perform Post-Repair tasks here>
     
-    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.postRepair
+    Set-YAMLActions -installPhase $installPhase -yamlData $YamlObject.properties.postRepair
 
 
   }
