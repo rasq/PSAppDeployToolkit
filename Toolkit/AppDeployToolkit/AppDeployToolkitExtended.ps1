@@ -1,17 +1,17 @@
 $Global:PSScriptRoot            = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
 $Global:ParentScriptRoot        = Split-Path $PSScriptRoot -Parent
 
-$Global:ConfigFilesPath         = $ParentScriptRoot + "\Sources\ConfigFiles"
-$Global:PrerequisitesPath       = $ParentScriptRoot + "\Sources\Prerequisites"
 $Global:SourcePath              = $ParentScriptRoot + "\Sources"
+$Global:ConfigFilesPath         = $SourcePath + "\ConfigFiles"
+$Global:PrerequisitesPath       = $SourcePath + "\Prerequisites"
 $Global:Configs                 = $ParentScriptRoot + "\AppDeployToolkit\CustomStandards"
-$Global:ProgramData             = $env:ProgramData
 $Global:ProgramFiles64          = $env:ProgramFiles
 $Global:ProgramFiles            = ${env:ProgramFiles(x86)}
 $Global:windir                  = $env:windir
 $Global:Temp                    = $env:Temp
 $Global:PUBLIC                  = $env:PUBLIC
 $Global:COMMONPROGRAMFILES64    = $env:COMMONPROGRAMFILES
+$Global:ProgramData             = $env:ProgramData
 $Global:PKGTMP                  = $ProgramData + "\PKGTmp\"
 $Global:rootDrive               = $PSScriptRoot.SubString(0,2)
 $Global:TagsDir                 = Join-Path -Path ${env:ProgramFiles(x86)} -ChildPath Logs
@@ -208,7 +208,6 @@ Function Set-MSI {
     Write-Log -Message "Script failed, missing or bad ACTION parameter in $($MyInvocation.MyCommand)/$($actionDate.appName)" -Severity 3 -Source $deployAppScriptFriendlyName
     Exit-Script -ExitCode $Global:RCMissingParameter
   }
-
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

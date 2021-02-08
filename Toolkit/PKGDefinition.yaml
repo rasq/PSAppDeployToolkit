@@ -28,11 +28,7 @@
       appName: "testApp"
       appVer: "1.0.0"
       msiFile: "app.msi"
-      mstFile: "app.mst"
-      mspFile: "app.msp"
       GUID: "appFromReg"
-      processName: "adf.vbs"
-      params: ""
   uninstallation:
 
 
