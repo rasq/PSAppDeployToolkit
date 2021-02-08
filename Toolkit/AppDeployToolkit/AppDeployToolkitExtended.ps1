@@ -39,12 +39,11 @@ Function Set-YAMLActions {
         Write-Log -Message "Proceed with: $($name)." -Source $deployAppScriptFriendlyName
 
         if ($name -like "msi_*") { Set-MSI -actionDate $actionDate -name $name }                #Basic tests: ok.
-        if ($name -like "directory_*") { Set-Directory -actionDate $actionDate -name $name }    #to test, basic logic was done.
+        if ($name -like "directory_*") { Set-Directory -actionDate $actionDate -name $name }    #Basic tests: ok.
+        if ($name -like "file_*") { Set-File -actionDate $actionDate -name $name }                          #to test, basic logic was done. Need to add: move, add, edit
         if ($name -like "msix_*") { Set-MSIX -actionDate $actionDate }                          #to test, basic logic was done.
         if ($name -like "exe_*") { Set-EXE -actionDate $actionDate }                            #to test, basic logic was done. Need to add version check
         if ($name -like "appv_*") { Set-APPV -actionDate $actionDate }                          #to test, basic logic was done.
-        if ($name -like "appvCG_*") { Set-APPVCG -actionDate $actionDate }
-        if ($name -like "file_*") { Set-File -actionDate $actionDate }                          #to test, basic logic was done. Need to add: move, add, edit
         if ($name -like "service_*") { Set-Services -actionDate $actionDate }                   #to test, basic logic was done.
         if ($name -like "registry_*") { Set-Registry -actionDate $actionDate }                  #to test, basic logic was done.
         if ($name -like "process_*") { Set-Process -actionDate $actionDate }                    #to test, basic logic was done. Only kill addedd
@@ -57,9 +56,10 @@ Function Set-YAMLActions {
         if ($name -like "unblockfiles_*") { Set-UnblockFiles -actionDate $actionDate }          #to test, basic logic was done.
         if ($name -like "scheduledtask_*") { Set-ScheduledTask -actionDate $actionDate }        #to test, basic logic was done. Need to add: new, set
         if ($name -like "detectionmethod_*") { Set-DetectionMethod -actionDate $actionDate }    #to test, basic logic was done.
-        if ($name -like "if_*") { Set-IfStatement -actionDate $actionDate }
-        if ($name -like "shortcut_*") { Set-Shortcut -actionDate $actionDate }                  #started but need to be done from sratch
         if ($name -like "pins_*") { Set-Pin -actionDate $actionDate }                           #to test, basic logic was done.
+        if ($name -like "shortcut_*") { Set-Shortcut -actionDate $actionDate }                  #started but need to be done from sratch
+        if ($name -like "if_*") { Set-IfStatement -actionDate $actionDate }
+        if ($name -like "appvCG_*") { Set-APPVCG -actionDate $actionDate }
     <# 
     if ($Name -eq "GETREG") { $RC = Get-Registry -actionName $Action -Data $Data } 
     if ($Name -eq "MSIVersion") { $RC = Get-MSIVersion -actionName $Action -Data $Data } 
@@ -1302,7 +1302,9 @@ Function Set-UnblockFiles {
 Function Set-File {
   param(
       [Parameter(Mandatory = $True)]
-      $actionDate
+      $actionDate,
+      [Parameter(Mandatory = $True)]
+      $name
   )
 
 <# 
@@ -1330,27 +1332,106 @@ file_:
   fileName: "app.exe"
   exit: "ifMissing" #ifInPlace noExit 
 #>
-<# 
+
   $forAllUsers = $False
   $x = 0
 
-  $OldDir = $actionDate.inPath
+  $OldDir = $actionDate.$name.inPath
+  $NewDir = $actionDate.$name.outPath
+  $FileName = $actionDate.$name.fileName
+  $NewFileName = $actionDate.$name.newFileName
+  $isForce = $actionDate.$name.force
+  $isExit = $actionDate.$name.exit
+
   if (($OldDir -like "*%allusers%*") -or ($OldDir -like "%allusers%*")) { $forAllUsers = $True }
-  $OldDir = Set-FullStringsFromVars -VarToCheck $OldDir
-  $NewDir = $actionDate.outPath
-  if (($OldDir -like "*%allusers%*") -or ($OldDir -like "%allusers%*")) { $forAllUsers = $True }
+  if (($NewDir -like "*%allusers%*") -or ($NewDir -like "%allusers%*")) { $forAllUsers = $True }
+  
   $NewDir = Set-FullStringsFromVars -VarToCheck $NewDir
-
-
-  $FileName = $actionDate.fileName
+  $OldDir = Set-FullStringsFromVars -VarToCheck $OldDir
   $FileNames = Get-MultiData -SrcData $FileName
-  $NewFileName = $actionDate.newFileName
   $NewFileNames = Get-MultiData -SrcData $NewFileName
 
-  $isForce = $actionDate.force
-  $isExit = $actionDate.exit
-
   if (Test-forVariable -varName $isExit) { $isExit = "noExit" }
+
+
+  if ($actionDate.$name.action.ToUpper() -eq "COPY") {
+    foreach ($file in $FileNames) {
+      $FileName = $file
+      $Directory = $OldDir
+      $TargetDirectory = $NewDir
+
+      if ($Directory -like "") { $Directory = $SourcePath }
+      if ($Directory -like "*\") { $Directory = $Directory.Substring(0,$Directory.Length-1) }
+
+      if ($forAllUsers -eq $True) {
+        Write-Log -Message "Will copy $Directory\$FileName to $TargetDirectory."
+
+        ForEach ($User In (Get-WmiObject Win32_UserProfile -F "Special != True" | Select-Object -Expand LocalPath)) {
+          if (-not ($Directory -like "*:\*")) { 
+            Write-Log -Message "\User\Directory - $($User)$Directory"
+            $DirectoryUser = "$User$Directory"
+          } else { $DirectoryUser = $Directory }
+
+          if (-not ($TargetDirectory -like "*:\*")) { 
+            Write-Log -Message "\User\TargetDirectory - $($User)$TargetDirectory"
+            $TargetDirectoryU = "$User$TargetDirectory"
+          } else { $TargetDirectoryU = $TargetDirectory }
+
+          if ($FileName -eq "*") {
+            if(!(Test-Path -Path "$TargetDirectory")){ New-Item -ItemType directory -Path "$TargetDirectory" }
+            Copy-Item -Path "$Directory\*" -Destination "$TargetDirectory" -Recurse -Force
+          } else {
+            $DestToUser = '"'+"$TargetDirectoryU\$FileName"+'"'
+            $DirectoryU = '"'+"$DirectoryUser\$FileName"+'"'
+
+            if (-not (Test-Path -Path $DestToUser)) {
+              if (-not (Test-Path -Path "$TargetDirectoryU" )) { New-Item "$TargetDirectoryU" -ItemType "directory" }
+              Write-Log -Message "& cmd /C copy /Y $DirectoryU $DestToUser"
+              & cmd /C "copy /Y $DirectoryU $DestToUser"
+            }
+          }
+        }
+      } else {
+        if ($FileName -eq "*") {
+          if (Test-Path -Path $TargetDirectory) { Write-Log -Message "$TargetDirectory exists. Copying content of $Directory." } 
+          else { New-Item -ItemType directory -Path "$TargetDirectory" }
+
+          if ($TargetDirectory -like "*\") { $TargetDirectory = $TargetDirectory.Substring(0,$TargetDirectory.Length-1) }
+          if ($Directory -like "*\") { $Directory = $Directory.Substring(0,$Directory.Length-1) }
+
+          robocopy "$Directory" "$TargetDirectory" /Mir
+
+          $AllFiles = Get-ChildItem -Path "$TargetDirectory\" -Name
+          Write-Log -Message "Files in: $TargetDirectory\."
+          foreach ($f in $AllFiles) { Write-Log -Message "- $f." }
+        } else {
+
+          if ($isForce -eq "true") { if (Test-Path -Path $TargetDirectory) { Remove-Item $TargetDirectory } }
+          if (Test-Path -Path $TargetDirectory) { Write-Log -Message "$TargetDirectory exists. Copying $FileName." } 
+          else {
+              Write-Log -Message "$TargetDirectory doesn't exist, creating."
+              New-Item -ItemType directory -Path "$TargetDirectory"
+          }
+
+          $NewDir = '"'+$TargetDirectory+'"'
+          if (-not(Test-Path -Path $TargetDirectory)) {
+              Write-Log -Message "copy $Directory $TargetDirectory"
+              & cmd /C "copy $Directory $TargetDirectory"
+          }
+        }
+      }
+      $x++
+    }
+  } elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
+  } elseif ($actionDate.$name.action.ToUpper() -eq "MOVE") {
+  } elseif ($actionDate.$name.action.ToUpper() -eq "RENAME") {
+  } elseif ($actionDate.$name.action.ToUpper() -eq "ADD") {
+  } elseif ($actionDate.$name.action.ToUpper() -eq "EDIT") {
+  } elseif ($actionDate.$name.action.ToUpper() -eq "CHECK") {
+  }
+
+<# 
+  
 
   if ($actionDate.action.ToUpper() -eq "REMOVE") {
     foreach ($file in $FileNames) {

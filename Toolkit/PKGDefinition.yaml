@@ -32,11 +32,12 @@
     #  GUID: "{CAAAA9DF-7CB4-4260-B6EB-2583F16DB67D}"
     directory_1:
       action: "ADD"
-      targetDir: "c:\\asd\\sad\\fdsfd"
-    directory_2:
+      targetDir: "%allusers%\\asd\\sad\\fdsfd"
+    file_1:
       action: "COPY"
-      sourceDir: "c:\\asd\\"
-      targetDir: "%allusers%\\asd"
+      #inPath: "c:\\asd\\"
+      outPath: "%allusers%\\asd"
+      fileName: "vagrant-shell.ps1"
   uninstallation:
     #msi_1:
     #  action: "REMOVE"
@@ -49,9 +50,9 @@
       action: "REMOVE"
       targetDir: "%allusers%\\asd"
       force: "true"
-    directory_2:
-      action: "REMOVE"
-      targetDir: "c:\\asd"
-      force: "true"
+    #directory_2:
+    #  action: "REMOVE"
+    #  targetDir: "c:\\asd"
+    #  force: "true"
 
 
