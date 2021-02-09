@@ -40,7 +40,7 @@ Function Set-YAMLActions {
 
         if ($name -like "msi_*") { Set-MSI -actionDate $actionDate -name $name }                #Basic tests: ok.
         if ($name -like "directory_*") { Set-Directory -actionDate $actionDate -name $name }    #Basic tests: ok.
-        if ($name -like "file_*") { Set-File -actionDate $actionDate -name $name }                          #to test, basic logic was done. Need to add: move, add, edit
+        if ($name -like "file_*") { Set-File -actionDate $actionDate -name $name }              #Basic tests: ok. Need to add: move, add, edit, check
         if ($name -like "msix_*") { Set-MSIX -actionDate $actionDate }                          #to test, basic logic was done.
         if ($name -like "exe_*") { Set-EXE -actionDate $actionDate }                            #to test, basic logic was done. Need to add version check
         if ($name -like "appv_*") { Set-APPV -actionDate $actionDate }                          #to test, basic logic was done.
@@ -1386,7 +1386,7 @@ file_:
 
             if (-not (Test-Path -Path $DestToUser)) {
               if (-not (Test-Path -Path "$TargetDirectoryU" )) { New-Item "$TargetDirectoryU" -ItemType "directory" }
-              Write-Log -Message "& cmd /C copy /Y $DirectoryU $DestToUser"
+              Write-Log -Message "cmd /C copy /Y $DirectoryU $DestToUser"
               & cmd /C "copy /Y $DirectoryU $DestToUser"
             }
           }
@@ -1423,122 +1423,54 @@ file_:
       $x++
     }
   } elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
-  } elseif ($actionDate.$name.action.ToUpper() -eq "MOVE") {
-  } elseif ($actionDate.$name.action.ToUpper() -eq "RENAME") {
-  } elseif ($actionDate.$name.action.ToUpper() -eq "ADD") {
-  } elseif ($actionDate.$name.action.ToUpper() -eq "EDIT") {
-  } elseif ($actionDate.$name.action.ToUpper() -eq "CHECK") {
-  }
-
-<# 
-  
-
-  if ($actionDate.action.ToUpper() -eq "REMOVE") {
     foreach ($file in $FileNames) {
       $FileName = $file
-      $Directory = $OldDir
-      $File = '"' + $Directory + "\" + $FileName + '"'
+      $Directory = $NewDir
 
-      if ($forAllUsers -eq $True) {
-        ForEach ($User In (Get-WmiObject Win32_UserProfile -F "Special != True" | Select-Object -Expand LocalPath)) {
-          Write-Log -Message "\User\NewDirectory - $($User)$Directory"
-
-          if ($file.Contains("*")) { 
-            Write-Log -Message "Remove all files includes $file in $User$Directory"
-            Remove-Item –path "$User$Directory\*" -include $file
-          } else {
-            Write-Log -Message "Remove-Item $User$Directory$FileName"
-            if (Test-Path -Path "$($User)$Directory$FileName") { Remove-Item "$($User)$Directory$FileName" }
-          }
-        }
-      } else { 
-          if ($file.Contains("*")) { 
-            Write-Log -Message "Remove all files includes $file in $User$Directory"
-            Remove-Item –path "$Directory\*" -include $file
-          } else {
-            Write-Log -Message "& cmd /C del $File"
-            & cmd /C "del $File" 
-          }
-      }
-    }
-  } elseif ($actionDate.action.ToUpper() -eq "COPY") {
-    foreach ($file in $FileNames) {
-      $FileName = $file
-      $Directory = $OldDir
-      $TargetDirectory = $NewDir
+      Write-Log -Message "Removing: $Directory\$FileName"
+      if ($Directory -like "*\") { $Directory = $Directory.Substring(0,$Directory.Length-1) }
 
       if ($forAllUsers -eq $True) {
         ForEach ($User In (Get-WmiObject Win32_UserProfile -F "Special != True" | Select-Object -Expand LocalPath)) {
           if (-not ($Directory -like "*:\*")) { 
-            Write-Log -Message "\User\Directory - $($User)$Directory"
-            $Directory = "$User$Directory"
-          }
-          if (-not ($TargetDirectory -like "*:\*")) { 
-            Write-Log -Message "\User\TargetDirectory - $($User)$TargetDirectory"
-            $TargetDirectory = "$User$TargetDirectory"
-          }
-
-          if ($FileName -eq "*") {
-            if(!(Test-Path -Path "$TargetDirectory")){ New-Item -ItemType directory -Path "$TargetDirectory" }
-            Copy-Item -Path "$Directory\*" -Destination "$TargetDirectory" -Recurse -Force
+            $DirectoryUser = "$User$Directory"
+            Write-Log -Message "\User\Directory - $DirectoryUser"
+          } else { $DirectoryUser = $Directory }
+           
+          if ($FileName.Contains("*")) { 
+            Write-Log -Message "Remove all files includes $FileName in $DirectoryUser"
+            Remove-Item "$DirectoryUser\*.*" | Where-Object { ! $_.PSIsContainer }
           } else {
-            $DestToUser = '"'+"$TargetDirectory\$FileName"+'"'
-            $Directory = '"'+"$Directory\$FileName"+'"'
-
-            if (-not (Test-Path -Path "$($User)$NewDir$FileName")) {
-                Write-Log -Message "& cmd /C copy /Y $Directory $DestToUser"
-                & cmd /C "copy /Y $Directory $DestToUser"
-            }
-          }
+            Write-Log -Message "Remove-Item $DirectoryUser\$FileName"
+            if (Test-Path -Path "$DirectoryUser\$FileName") { Remove-Item "$DirectoryUser\$FileName" }
+          } 
         }
       } else {
-        if ($FileName -eq "*") {
-          if (Test-Path -Path $TargetDirectory) { Write-Log -Message "$TargetDirectory exists. Copying content of $Directory." } 
-          else { New-Item -ItemType directory -Path "$TargetDirectory" }
-
-          if ($TargetDirectory -like "*\") { $TargetDirectory = $TargetDirectory.Substring(0,$TargetDirectory.Length-1) }
-          if ($Directory -like "*\") { $Directory = $Directory.Substring(0,$Directory.Length-1) }
-
-          robocopy "$Directory" "$TargetDirectory" /Mir
-
-          $AllFiles = Get-ChildItem -Path "$TargetDirectory\" -Name
-          Write-Log -Message "Files in: $TargetDirectory\."
-          foreach ($f in $AllFiles) { Write-Log -Message "- $f." }
+        if ($FileName.Contains("*")) { 
+          Write-Log -Message "Remove all files includes $file in $Directory"
+          Remove-Item "$Directory\*.*" | Where-Object { ! $_.PSIsContainer }
         } else {
-
-          if ($isForce -eq "true") { if (Test-Path -Path $TargetDirectory) { Remove-Item $TargetDirectory } }
-          if (Test-Path -Path $TargetDirectory) { Write-Log -Message "$TargetDirectory exists. Copying $FileName." } 
-          else {
-              Write-Log -Message "$TargetDirectory doesn't exist, creating."
-              New-Item -ItemType directory -Path "$TargetDirectory"
-          }
-
-          $NewDir = '"'+$TargetDirectory+'"'
-          if (-not(Test-Path -Path $TargetDirectory)) {
-              Write-Log -Message "copy $Directory $TargetDirectory"
-              & cmd /C "copy $Directory $TargetDirectory"
-          }
+          Write-Log -Message "cmd /C del $Directory$File"
+          & cmd /C "del $Directory\$File" 
         }
       }
-      $x++
     }
-  } elseif ($actionDate.action.ToUpper() -eq "MOVE") {
-  } elseif ($actionDate.action.ToUpper() -eq "RENAME") {
-    if ($FileNames.Length -eq $NewFileNames.Length) {
+  } elseif ($actionDate.$name.action.ToUpper() -eq "RENAME") {
+    if (Test-forArrays -arr1 $FileNames -arr2 $NewFileNames) {
       foreach ($file in $FileNames) {
         $FileName = $file
-        $NewFileName = $NewFileNames[$x]
-        $Directory = $OldDir
+        if ($NewFileNames -is [array]) { $NewFileName = $NewFileNames[$x] } else { $NewFileName = $NewFileName }
+        $Directory = $NewDir
 
         if ($forAllUsers -eq $True) {
           ForEach ($User In (Get-WmiObject Win32_UserProfile -F "Special != True" | Select-Object -Expand LocalPath)) {
-            Write-Log -Message "\User\Directory - $($User)$Directory"
-            $Directory = "$User$Directory"
-              
-            $File = '"' + $Directory + "\" + $FileName + '"'
+            $DirectoryUser = "$User$Directory"
+            Write-Log -Message "\User\Directory - $DirectoryUser"
+                
+            $FileU = '"' + $DirectoryUser + "\" + $FileName + '"'
             $NewFileName = '"' + $NewFileName + '"'
-            Write-Log -Message "RENAME $File $NewFileName."
-            & cmd /C "RENAME $File $NewFileName"
+            Write-Log -Message "RENAME $FileU $NewFileName."
+            & cmd /C "RENAME $FileU $NewFileName"
           }
         } else {
           $File = '"' + $Directory + "\" + $FileName + '"'
@@ -1552,47 +1484,12 @@ file_:
       Write-Log -Message "Script failed, diffrent number of files in parameteres in  $($MyInvocation.MyCommand)" -Severity 3 -Source $deployAppScriptFriendlyName
       Exit-Script -ExitCode $Global:RCMissingParameter
     }
-  } elseif ($actionDate.action.ToUpper() -eq "ADD") {
-  } elseif ($actionDate.action.ToUpper() -eq "EDIT") {
-  } elseif ($actionDate.action.ToUpper() -eq "CHECK") {
-    foreach ($file in $FileNames) {
-      $Directory = $OldDir
-
-      $FilePath = "$Directory\$file"
-      if (Test-Path $FilePath) { 
-        Write-Log -Message "$FilePath exist."
-        $fileExist = $true
-      } else { 
-        Write-Log -Message "$FilePath do not exist."
-        $fileExist = $false
-      }
-
-      $RC = $True 
-      
-      if (($fileExist) -and ($isExit -eq "ifInPlace")) { 
-        Write-Log -Message "$FilePath exist, exiting script RC = 1."
-        Exit-Script -ExitCode $Global:RCMissingParameter 
-      } elseif ((-not($fileExist)) -and ($isExit -eq "ifMissing")) { 
-        Write-Log -Message "$FilePath do not exist, exiting script RC = 1."
-        Exit-Script -ExitCode $Global:RCMissingParameter 
-      } elseif ((-not($fileExist)) -and ($isExit -eq "ifInPlace")) { 
-        Write-Log -Message "$FilePath do not exist as expected, returning $True."
-        if ($RC) { $RC = $True }
-      } elseif (($fileExist) -and ($isExit -eq "ifMissing")) { 
-        Write-Log -Message "$FilePath exist as expected, returning $True."
-        if ($RC) { $RC = $True }
-      } elseif (($fileExist) -and ($isExit -eq "noExit")) { 
-        Write-Log -Message "$FilePath exist, returning $True."
-        if ($RC) { $RC = $True }
-      } elseif ((-not($fileExist)) -and ($isExit -eq "noExit")) { 
-        Write-Log -Message "$FilePath do not exist, returning $False."
-        $RC = $False 
-      } 
-    }
-    if ($RC -eq $False) { Write-Log -Message "At least one of files was in not correct state, will return False." }
-    return $RC
+  } elseif ($actionDate.$name.action.ToUpper() -eq "MOVE") {
+  } elseif ($actionDate.$name.action.ToUpper() -eq "ADD") {
+  } elseif ($actionDate.$name.action.ToUpper() -eq "EDIT") {
+  } elseif ($actionDate.$name.action.ToUpper() -eq "CHECK") {
   }
-   #>
+
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2126,6 +2023,20 @@ Function Test-forVariable {
 
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Test-forArrays {
+	param( 
+		$arr1,
+    $arr2
+	)
+  $RC = $False
+  if ((($arr1 -is [array]) -and ($arr2 -is [array]) -and (($arr1.Length -eq $arr2.Length))) -or (!($arr1 -is [array]) -and !($arr2 -is [array]))) { $RC = $True }
+  
+  Return $RC
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-CustomStandards {
 	param( 
 		$iniName = "Default"
@@ -2134,3 +2045,5 @@ Function Set-CustomStandards {
   $Configs
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
