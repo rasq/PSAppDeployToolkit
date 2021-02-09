@@ -21,45 +21,45 @@ $Global:RCMissingParameter      = -1
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-YAMLActions {
   param(
-      [Parameter(Mandatory = $True)]
-      [String]$installPhase, 
-      [Parameter(Mandatory = $True)]
-      [AllowEmptyString()]
-      [AllowNull()]
-      $yamlData
+    [Parameter(Mandatory = $True)]
+    [String]$installPhase, 
+    [Parameter(Mandatory = $True)]
+    [AllowEmptyString()]
+    [AllowNull()]
+    $yamlData
   )
 
   Write-Log -Message "Starting: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
   
   if (($yamlData -ne "") -and ($yamlData -ne " ") -and ($null -ne $yamlData) -and ($empty -ne $yamlData)) {
     $yamlData.keys | ForEach-Object {
-        $name = $_
-        $actionDate = $yamlData
+    $name = $_
+    $actionDate = $yamlData
 
-        Write-Log -Message "Proceed with: $($name)." -Source $deployAppScriptFriendlyName
+    Write-Log -Message "Proceed with: $($name)." -Source $deployAppScriptFriendlyName
 
-        if ($name -like "msi_*") { Set-MSI -actionDate $actionDate -name $name }                #Basic tests: ok.
-        if ($name -like "directory_*") { Set-Directory -actionDate $actionDate -name $name }    #Basic tests: ok.
-        if ($name -like "file_*") { Set-File -actionDate $actionDate -name $name }              #Basic tests: ok. Need to add: move, add, edit, check
-        if ($name -like "msix_*") { Set-MSIX -actionDate $actionDate }                          #to test, basic logic was done.
-        if ($name -like "exe_*") { Set-EXE -actionDate $actionDate }                            #to test, basic logic was done. Need to add version check
-        if ($name -like "appv_*") { Set-APPV -actionDate $actionDate }                          #to test, basic logic was done.
-        if ($name -like "service_*") { Set-Services -actionDate $actionDate }                   #to test, basic logic was done.
-        if ($name -like "registry_*") { Set-Registry -actionDate $actionDate }                  #to test, basic logic was done.
-        if ($name -like "process_*") { Set-Process -actionDate $actionDate }                    #to test, basic logic was done. Only kill addedd
-        if ($name -like "sleep_*") { Set-Sleep -actionDate $actionDate }                        #to test, basic logic was done.
-        if ($name -like "script_*") { Set-Script -actionDate $actionDate }                      #to test, basic logic was done.
-        if ($name -like "archive_*") { Set-Archive -actionDate $actionDate }                    #to test, basic logic was done.
-        if ($name -like "winfeature_*") { Set-WinFeature -actionDate $actionDate }              #to test, basic logic was done.
-        if ($name -like "systemsettings_*") { Set-SysSettings -actionDate $actionDate }         #to test, basic logic was done. Need to change internal functions handling
-        if ($name -like "dll_*") { Set-DLL -actionDate $actionDate }                            #to test, basic logic was done.
-        if ($name -like "unblockfiles_*") { Set-UnblockFiles -actionDate $actionDate }          #to test, basic logic was done.
-        if ($name -like "scheduledtask_*") { Set-ScheduledTask -actionDate $actionDate }        #to test, basic logic was done. Need to add: new, set
-        if ($name -like "detectionmethod_*") { Set-DetectionMethod -actionDate $actionDate }    #to test, basic logic was done.
-        if ($name -like "pins_*") { Set-Pin -actionDate $actionDate }                           #to test, basic logic was done.
-        if ($name -like "shortcut_*") { Set-Shortcut -actionDate $actionDate }                  #started but need to be done from sratch
-        if ($name -like "if_*") { Set-IfStatement -actionDate $actionDate }
-        if ($name -like "appvCG_*") { Set-APPVCG -actionDate $actionDate }
+    if ($name -like "msi_*") { Set-MSI -actionDate $actionDate -name $name }                            #Basic tests: ok.
+    if ($name -like "directory_*") { Set-Directory -actionDate $actionDate -name $name }                #Basic tests: ok.
+    if ($name -like "script_*") { Set-Script -actionDate $actionDate -name $name }                      #to test, basic logic was done.
+    if ($name -like "file_*") { Set-File -actionDate $actionDate -name $name }                          #Basic tests: ok. Need to add: move, add, edit, check
+    if ($name -like "msix_*") { Set-MSIX -actionDate $actionDate -name $name }                          #to test, basic logic was done.
+    if ($name -like "exe_*") { Set-EXE -actionDate $actionDate -name $name }                            #to test, basic logic was done. Need to add version check
+    if ($name -like "appv_*") { Set-APPV -actionDate $actionDate -name $name }                          #to test, basic logic was done.
+    if ($name -like "service_*") { Set-Services -actionDate $actionDate -name $name }                   #to test, basic logic was done.
+    if ($name -like "registry_*") { Set-Registry -actionDate $actionDate -name $name }                  #to test, basic logic was done.
+    if ($name -like "process_*") { Set-Process -actionDate $actionDate -name $name }                    #to test, basic logic was done. Only kill addedd
+    if ($name -like "sleep_*") { Set-Sleep -actionDate $actionDate -name $name }                        #to test, basic logic was done.
+    if ($name -like "archive_*") { Set-Archive -actionDate $actionDate -name $name }                    #to test, basic logic was done.
+    if ($name -like "winfeature_*") { Set-WinFeature -actionDate $actionDate -name $name }              #to test, basic logic was done.
+    if ($name -like "systemsettings_*") { Set-SysSettings -actionDate $actionDate -name $name }         #to test, basic logic was done. Need to change internal functions handling
+    if ($name -like "dll_*") { Set-DLL -actionDate $actionDate -name $name }                            #to test, basic logic was done.
+    if ($name -like "unblockfiles_*") { Set-UnblockFiles -actionDate $actionDate -name $name }          #to test, basic logic was done.
+    if ($name -like "scheduledtask_*") { Set-ScheduledTask -actionDate $actionDate -name $name }        #to test, basic logic was done. Need to add: new, set
+    if ($name -like "detectionmethod_*") { Set-DetectionMethod -actionDate $actionDate -name $name }    #to test, basic logic was done.
+    if ($name -like "pins_*") { Set-Pin -actionDate $actionDate -name $name }                           #to test, basic logic was done.
+    if ($name -like "shortcut_*") { Set-Shortcut -actionDate $actionDate -name $name }                  #started but need to be done from sratch
+    if ($name -like "if_*") { Set-ifStatement -actionDate $actionDate -name $name }
+    if ($name -like "appvCG_*") { Set-APPVCG -actionDate $actionDate -name $name }
     <# 
     if ($Name -eq "GETREG") { $RC = Get-Registry -actionName $Action -Data $Data } 
     if ($Name -eq "MSIVersion") { $RC = Get-MSIVersion -actionName $Action -Data $Data } 
@@ -82,16 +82,16 @@ Function Set-YAMLActions {
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-MSI {
   param(
-      [Parameter(Mandatory = $True)]
-      $actionDate,
-      [Parameter(Mandatory = $True)]
-      $name
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
   )
 
   <# 
   appName: "testApp"
   appVer: "1.0.0"
-  msiFile: "app.msi"
+  msifile: "app.msi"
   mstFile: "app.mst"
   mspFile: "app.msp"
   GUID: "appFromReg"
@@ -107,7 +107,7 @@ Function Set-MSI {
 
   $appName = $actionDate.$name.appName
   $appVer = $actionDate.$name.appVer
-  $msiFile = $actionDate.$name.msiFile
+  $msifile = $actionDate.$name.msifile
   $mstFile = $actionDate.$name.mstFile
   $mspFile = $actionDate.$name.mspFile
   $GUID = $actionDate.$name.GUID
@@ -116,7 +116,7 @@ Function Set-MSI {
 
   $tagLogName = $actionDate.$name.tagLogName
 
-  $msiFile = Set-FullStringsFromVars -VarToCheck $msiFile
+  $msifile = Set-FullStringsFromVars -VarToCheck $msifile
   $mstFile = Set-FullStringsFromVars -VarToCheck $mstFile
   $mspFile = Set-FullStringsFromVars -VarToCheck $mspFile
 
@@ -124,7 +124,7 @@ Function Set-MSI {
   $params = Set-FullStringsFromVars -VarToCheck $params
 
   if ($actionDate.$name.action.ToUpper() -eq "ADD") {
-    $msiFiles = Get-MultiData -SrcData $msiFile -PreData $SourcePath
+    $msifiles = Get-MultiData -SrcData $msifile -PreData $SourcePath
     $mstFiles = Get-MultiData -SrcData $mstFile -PreData $SourcePath
     $mspFiles = Get-MultiData -SrcData $mspFile -PreData $SourcePath	
     
@@ -132,15 +132,15 @@ Function Set-MSI {
     $appNames = Get-MultiData -SrcData $appName
     $tagLogNames = Get-MultiData -SrcData $tagLogName
 
-    if (($msiFiles.Length -gt 0) -and ($msiFiles[0] -ne "") -and ($null -ne $msiFiles[0])) { 
+    if (($msifiles.Length -gt 0) -and ($msifiles[0] -ne "") -and ($null -ne $msifiles[0])) { 
       $x = 0
-      foreach($msi in $msiFiles) { 
+      foreach($msi in $msifiles) { 
         if (-not($msi -like "*.msi")) { $msi = "$msi.msi" }
-        Test-IfParamFileExist -path $msi
-        if ($msiFiles.Length -eq $mstFile.Length) { 
+        Test-ifParamFileExist -path $msi
+        if ($msifiles.Length -eq $mstFile.Length) { 
           $mst = $mstFiles[$x]
           if (-not($mst -like "*.mst")) { $mst = "$mst.mst" }
-          Test-IfParamFileExist -path $mst
+          Test-ifParamFileExist -path $mst
           $CurrentMSIGUID = Get-MsiTableProperty -Path "$msi" -TransformPath "$($mst)" -Table 'Property' | Select-Object -ExpandProperty 'ProductCode' 
         } else { $CurrentMSIGUID = Get-MsiTableProperty -Path "$msi" -Table 'Property' | Select-Object -ExpandProperty 'ProductCode' }
         
@@ -151,25 +151,25 @@ Function Set-MSI {
           Remove-MSIApplications -Name $CurrentMSIGUID #-LogNameV "$CurrentMSIGUID-uninstall"
         }
 
-        #if ($msiFiles.Length -eq $appNames.Length) { $logTagName = $appNames[$x] }
+        #if ($msifiles.Length -eq $appNames.Length) { $logTagName = $appNames[$x] }
         #else { $logTagName = $CurrentMSIGUID }
 
-        if ($msiFiles.Length -eq $tagLogNames.Length) { $logTagName = $tagLogNames[$x] } #todo: use for log name 
+        if ($msifiles.Length -eq $tagLogNames.Length) { $logTagName = $tagLogNames[$x] } #todo: use for log name 
   
-        if ($msiFiles.Length -eq $mstFile.Length) {
+        if ($msifiles.Length -eq $mstFile.Length) {
           $mst = $mstFiles[$x]
           if (-not($mst -like "*.mst")) { $mst = "$mst.mst" }
-          if ($msiFiles.Length -eq $allParams.Length) { Execute-MSI -Action 'Install' "$msi" -Transform "$($mst)" <#-LogNameV "$logTagName" #>-AddParameters "$($allParams[$x])" }
+          if ($msifiles.Length -eq $allParams.Length) { Execute-MSI -Action 'Install' "$msi" -Transform "$($mst)" <#-LogNameV "$logTagName" #>-AddParameters "$($allParams[$x])" }
           else { Execute-MSI -Action 'Install' "$msi" -Transform "$($mst)" <#-LogNameV "$logTagName"#> }
         } else { 
-          if ($msiFiles.Length -eq $allParams.Length) { Execute-MSI -Action 'Install' "$msi" <#-LogNameV "$logTagName" #>-AddParameters "$($allParams[$x])" }
+          if ($msifiles.Length -eq $allParams.Length) { Execute-MSI -Action 'Install' "$msi" <#-LogNameV "$logTagName" #>-AddParameters "$($allParams[$x])" }
           else { Execute-MSI -Action 'Install' "$msi" <#-LogNameV "$logTagName"#> }
         }
         
-        if ($msiFiles.Length -eq $mspFiles.Length) { 
+        if ($msifiles.Length -eq $mspFiles.Length) { 
           $msp = $mspFiles[$x]
           if (-not($msp -like "*.mst")) { $msp = "$msp.msp" }
-          Test-IfParamFileExist -path $msp
+          Test-ifParamFileExist -path $msp
           Execute-MSP -Path "$($msp)" 
         }
 
@@ -179,7 +179,7 @@ Function Set-MSI {
     } elseif (($mspFiles.Length -gt 0) -and ($mspFiles[0] -ne "") -and ($null -ne $mspFiles[0])) { 
       foreach($msp in $mspFiles) { 
         if (-not($msp -like "*.mst")) { $msp = "$msp.msp" }
-        Test-IfParamFileExist -path $msp
+        Test-ifParamFileExist -path $msp
         Execute-MSP -Path "$msp" 
       }
     }
@@ -196,7 +196,7 @@ Function Set-MSI {
       $x = 0
       
       foreach($app in $GUIDs) { 
-        if ($msiFiles.Length -eq $tagLogNames.Length) { $logTagName = $tagLogNames[$x] } #todo: use for log name 
+        if ($msifiles.Length -eq $tagLogNames.Length) { $logTagName = $tagLogNames[$x] } #todo: use for log name 
 
         if (Test-IsGuid -ObjectGuid $app) {
           if ($GUIDs.Length -eq $appNames.Length) { 
@@ -243,12 +243,14 @@ Function Set-MSI {
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-DLL {
   param(
-      [Parameter(Mandatory = $True)]
-      $actionDate
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
   )
 
-  $DllFile = $actionDate.dllFile
-  $DllPath = $actionDate.dllPath
+  $DllFile = $actionDate.$name.dllFile
+  $DllPath = $actionDate.$name.dllPath
 
 
   if (!(Test-forVariable -varName $DllFile)) {
@@ -265,32 +267,32 @@ Function Set-DLL {
 
       $dllFullPath = Set-FullStringsFromVars -VarToCheck $dllFullPath
 
-      If ($actionDate.action.ToUpper() -eq "REMOVE") { 
-          Test-IfParamFileExist -path $dllFullPath
-          regsvr32 /s /u $dllFullPath 
+      if ($actionDate.$name.action.ToUpper() -eq "REMOVE") { 
+        Test-ifParamFileExist -path $dllFullPath
+        regsvr32 /s /u $dllFullPath 
       
-          Switch ($LastExitCode) {
-            0 {Write-Log -Message "Unregistration $dllFullPath succeeded. RC = 0."}
-            1 {Write-Log -Message "Unregistration $dllFullPath failed. Invalid argument.RC = 1."}
-            2 {Write-Log -Message "Unregistration $dllFullPath failed. OleInitialize failed. RC = 2."}
-            3 {Write-Log -Message "Unregistration $dllFullPath failed. LoadLibrary failed. RC = 3."}
-            4 {Write-Log -Message "Unregistration $dllFullPath failed. GetProcAdsress failed. RC = 4."}
-            5 {Write-Log -Message "Unregistration $dllFullPath failed. DllUnregisterServer function failed. RC = 5."}
-            Default { Write-Log -Message "Unregistration $dllFullPath status unknown."}
-          }
-      } ElseIf ($actionDate.action.ToUpper() -eq "ADD") { 
-          Test-IfParamFileExist -path $dllFullPath
-          regsvr32 /s $dllFullPath
+        Switch ($LastExitCode) {
+          0 {Write-Log -Message "Unregistration $dllFullPath succeeded. RC = 0."}
+          1 {Write-Log -Message "Unregistration $dllFullPath failed. Invalid argument.RC = 1."}
+          2 {Write-Log -Message "Unregistration $dllFullPath failed. OleInitialize failed. RC = 2."}
+          3 {Write-Log -Message "Unregistration $dllFullPath failed. LoadLibrary failed. RC = 3."}
+          4 {Write-Log -Message "Unregistration $dllFullPath failed. GetProcAdsress failed. RC = 4."}
+          5 {Write-Log -Message "Unregistration $dllFullPath failed. DllUnregisterServer function failed. RC = 5."}
+          Default { Write-Log -Message "Unregistration $dllFullPath status unknown."}
+        }
+      } Elseif ($actionDate.$name.action.ToUpper() -eq "ADD") { 
+        Test-ifParamFileExist -path $dllFullPath
+        regsvr32 /s $dllFullPath
           
-          Switch ($LastExitCode) {
-            0 {Write-Log -Message "Registration $dllFullPath succeeded. RC = 0."}
-            1 {Write-Log -Message "Registration failed. Invalid argument. RC = 1."}
-            2 {Write-Log -Message "Registration failed. OleInitialize failed. RC = 2."}
-            3 {Write-Log -Message "Registration failed. LoadLibrary failed. RC = 3."}
-            4 {Write-Log -Message "Registration failed. GetProcAdsress failed. RC = 4."}
-            5 {Write-Log -Message "Registration failed. DllUnregisterServer function failed. RC = 5."}
-            Default { Write-Log -Message "Registration $dllFullPath status unknown."}
-          }
+        Switch ($LastExitCode) {
+          0 {Write-Log -Message "Registration $dllFullPath succeeded. RC = 0."}
+          1 {Write-Log -Message "Registration failed. Invalid argument. RC = 1."}
+          2 {Write-Log -Message "Registration failed. OleInitialize failed. RC = 2."}
+          3 {Write-Log -Message "Registration failed. LoadLibrary failed. RC = 3."}
+          4 {Write-Log -Message "Registration failed. GetProcAdsress failed. RC = 4."}
+          5 {Write-Log -Message "Registration failed. DllUnregisterServer function failed. RC = 5."}
+          Default { Write-Log -Message "Registration $dllFullPath status unknown."}
+        }
       } 
     }
   } else {
@@ -304,8 +306,10 @@ Function Set-DLL {
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-Archive {
   param(
-      [Parameter(Mandatory = $True)]
-      $actionDate
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
   )
 
   #TODO:
@@ -316,16 +320,16 @@ Function Set-Archive {
   
   Write-Log -Message "Current disc space: $discSpace" -Source $deployAppScriptFriendlyName
 
-  $DirPath = $actionDate.path
-  $ArchName = $actionDate.archName
-  $TargetDir = $actionDate.targetPath
-  $ArchType = $actionDate.type
+  $DirPath = $actionDate.$name.path
+  $ArchName = $actionDate.$name.archName
+  $TargetDir = $actionDate.$name.targetPath
+  $ArchType = $actionDate.$name.type
 
   $DirsPath = Get-MultiData -SrcData $DirPath
   $ArchsName = Get-MultiData -SrcData $ArchName
 
   if (!(Test-forVariable -varName $ArchName)) {
-    If ($actionDate.action.ToUpper() -eq "ADD") {
+    if ($actionDate.$name.action.ToUpper() -eq "ADD") {
       foreach ($dir in $DirsPath) {
         if ($DirsPath.Length -eq $ArchsName.Length) { $zipName = $ArchsName[$x] }
         else { $zipName = "$($ArchsName[0])_$x" }
@@ -334,7 +338,7 @@ Function Set-Archive {
         elseif ($ArchType -eq "ZIP") {}
         elseif ($ArchType -eq "PSZIP") { New-ZipFile -DestinationArchiveDirectoryPath "$TargetDir" -DestinationArchiveFileName "$zipName.zip" -SourceDirectory "$dir" -OverWriteArchive $True }
       }
-    } elseif ($actionDate.action.ToUpper() -eq "UNPACK") {
+    } elseif ($actionDate.$name.action.ToUpper() -eq "UNPACK") {
       $TargetDir = Set-FullStringsFromVars -VarToCheck $TargetDir
 
       foreach ($arch in $ArchsName) {
@@ -367,19 +371,20 @@ Function Set-Archive {
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-Services {
   param(
-      [Parameter(Mandatory = $True)]
-      $actionDate
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
   )
 
-  $ServiceName = $actionDate.serviceName
+  $ServiceName = $actionDate.$name.serviceName
   $ServiceNames = Get-MultiData -SrcData $ServiceName
 
-  
-  $ServiceBinary = $actionDate.serviceBinary
+  $ServiceBinary = $actionDate.$name.serviceBinary
   $ServiceBinarys = Get-MultiData -SrcData $ServiceBinary
-  $StartupType = $actionDate.startupType
+  $StartupType = $actionDate.$name.startupType
   $StartupTypes = Get-MultiData -SrcData $StartupType
-  $DependsOn = $actionDate.dependsOn
+  $DependsOn = $actionDate.$name.dependsOn
   $ListDependsOn = Get-MultiData -SrcData $DependsOn
 
   Write-Log -Message "Starting: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName 
@@ -387,7 +392,7 @@ Function Set-Services {
   $x = 0
 
   foreach ($service in $ServiceNames) {
-    if($actionDate.action.ToUpper() -eq "ADD") { 
+    if($actionDate.$name.action.ToUpper() -eq "ADD") { 
       $ServiceBinary = $ServiceBinarys[$x]
       $ServiceBinary = Set-FullStringsFromVars -VarToCheck $ServiceBinary
       $StartupType = $StartupTypes[$x]
@@ -410,17 +415,18 @@ Function Set-Services {
           StartupType = "$StartupType"
           Description = "$service"
         }
-      } New-Service @params }
-      elseif ($actionDate.action.ToUpper() -eq "STOP") { If (Get-Service $service -ErrorAction SilentlyContinue) { Get-Service -Name $service | Set-Service -Status Stopped -PassThru -Force }} 
-      elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
+      } 
+    New-Service @params 
+    } elseif ($actionDate.$name.action.ToUpper() -eq "STOP") { if (Get-Service $service -ErrorAction SilentlyContinue) { Get-Service -Name $service | Set-Service -Status Stopped -PassThru -Force }
+    } elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
         if (Get-Service -Name $service -ErrorAction SilentlyContinue) {
           Write-Log -Message "Removing: $service."
           Stop-Service $service
           Get-CimInstance -ClassName Win32_Service -Filter "Name=$service" | Remove-CimInstance
-        } else { Write-Log -Message "$service is not present, nothink to remove. Going to next step." }}
-      elseif ($actionDate.action.ToUpper() -eq "START") { If (Get-Service $service -ErrorAction SilentlyContinue) { Get-Service -Name $service | Set-Service  -Status Running -PassThru }}
-      elseif ($actionDate.action.ToUpper() -eq "PAUSE") { If (Get-Service $service -ErrorAction SilentlyContinue) {Get-Service -Name $service | Set-Service -Status Paused }}
-      elseif ($actionDate.action.ToUpper() -eq "DISABLE") { If (Get-Service $service -ErrorAction SilentlyContinue) {Get-Service -Name $service | Set-Service -StartupType Disabled -PassThru }}
+        } else { Write-Log -Message "$service is not present, nothink to remove. Going to next step." }
+    } elseif ($actionDate.$name.action.ToUpper() -eq "START") { if (Get-Service $service -ErrorAction SilentlyContinue) { Get-Service -Name $service | Set-Service  -Status Running -PassThru }
+    } elseif ($actionDate.$name.action.ToUpper() -eq "PAUSE") { if (Get-Service $service -ErrorAction SilentlyContinue) {Get-Service -Name $service | Set-Service -Status Paused }
+    } elseif ($actionDate.$name.action.ToUpper() -eq "DISABLE") { if (Get-Service $service -ErrorAction SilentlyContinue) {Get-Service -Name $service | Set-Service -StartupType Disabled -PassThru }}
     $x++
   }
 }
@@ -430,8 +436,10 @@ Function Set-Services {
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-Process {
   param(
-      [Parameter(Mandatory = $True)]
-      $actionDate
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
   )
 
 <# 
@@ -451,15 +459,15 @@ Function Set-Process {
     mode: "UNBLOCK"
  #>
 
-  $ProcessName = $actionDate.processName
+  $ProcessName = $actionDate.$name.processName
   $ProcessesNames = Get-MultiData -SrcData $ProcessName
 
   $x = 0
 
   foreach ($proces in $ProcessesNames) {
-    If ($actionDate.action.ToUpper() -eq "STOP") {
+    if ($actionDate.$name.action.ToUpper() -eq "STOP") {
 
-    } elseif ($actionDate.action.ToUpper() -eq "KILL") {
+    } elseif ($actionDate.$name.action.ToUpper() -eq "KILL") {
       $ProcName = $proces.ToLower()
       $ProcName = $ProcName.Replace(".exe","")
       $KillProc = [System.Collections.ArrayList]@()
@@ -469,7 +477,6 @@ Function Set-Process {
       
       Get-Process -Name $ProcName | Stop-Process -Force
 
-
       if ($Action.Length -eq 2) {  
         if (!(Test-forVariable -varName $ProcName)) {
           foreach ($ProcName in $Process) { Write-Log -Message "Adding: $ProcName to process list."; $KillProc.Add($ProcName) }
@@ -477,7 +484,7 @@ Function Set-Process {
           elseif ($Action[1] -eq "unblock") { Unblock-AppExecution }
         }
       } elseif ($Action.Length -eq 3) {
-        If (($Action[0] -eq "kill") -and ($Action[1] -eq "null")) {
+        if (($Action[0] -eq "kill") -and ($Action[1] -eq "null")) {
           Write-Log -Message "stop-process -name $ProcName -force"
           stop-process -name $ProcName -force -ErrorAction SilentlyContinue
         } else {
@@ -497,11 +504,7 @@ Function Set-Process {
           }
         }
       }
-
-
-    } elseif ($actionDate.action.ToUpper() -eq "START") {
-    }
-
+    } elseif ($actionDate.$name.action.ToUpper() -eq "START") {  }
     $x++
   }  
 }
@@ -511,27 +514,29 @@ Function Set-Process {
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-SysSettings {
   param(
-      [Parameter(Mandatory = $True)]
-      $actionDate
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
   )
 
-  $mainValue = $actionDate.mainValue
+  $mainValue = $actionDate.$name.mainValue
   $mainValues = Get-MultiData -SrcData $mainValue
 
-  If ($actionDate.action.ToUpper() -eq "CULTURE") {
+  if ($actionDate.$name.action.ToUpper() -eq "CULTURE") {
     foreach ($value in $mainValues) {
       Write-Log -Message "Set new value for Culture: $value"
       Set-Culture -CultureInfo $value
     }
-  } elseif ($actionDate.action.ToUpper() -eq "NETUSE") {
+  } elseif ($actionDate.$name.action.ToUpper() -eq "NETUSE") {
     foreach ($value in $mainValues) {
       Write-Log -Message "Set new value for NET USE: $value"
       NET USE $value
     }
-  } elseif ($actionDate.action.ToUpper() -eq "REBOOT") {
+  } elseif ($actionDate.$name.action.ToUpper() -eq "REBOOT") {
     Write-Log -Message "Set shutdown /f /r /t $mainValue"
     shutdown /f /r /t $mainValue
-  } elseif ($actionDate.action.ToUpper() -eq "CHROMEUPDATES") {
+  } elseif ($actionDate.$name.action.ToUpper() -eq "CHROMEUPDATES") {
     Write-Log -Message "Disabling Google Chrome Updates"
     
     $data = @{
@@ -577,25 +582,27 @@ Function Set-SysSettings {
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-EXE {
   param(
-      [Parameter(Mandatory = $True)]
-      $actionDate
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
   )
 
-  $EXEFile = $actionDate.exeFile
+  $EXEFile = $actionDate.$name.exeFile
   $EXEFile = Set-FullStringsFromVars -VarToCheck $EXEFile
   $EXEFiles = Get-MultiData -SrcData $EXEFile
-  $CMDParams = $actionDate.params
+  $CMDParams = $actionDate.$name.params
   $CMDParams = Set-FullStringsFromVars -VarToCheck $CMDParams
   $CMDParameters = Get-MultiData -SrcData $CMDParams
 
-  $PKGName = $actionDate.appName
+  $PKGName = $actionDate.$name.appName
   $PKGNames = Get-MultiData -SrcData $PKGName
-  $appVer = $actionDate.appVer
+  $appVer = $actionDate.$name.appVer
   $appVers = Get-MultiData -SrcData $appVer
-  $EXEGUID = $actionDate.GUID
+  $EXEGUID = $actionDate.$name.GUID
   $EXEGUIDs = Get-MultiData -SrcData $EXEGUID
 
-  $RC = $actionDate.rc
+  $RC = $actionDate.$name.rc
   $x = 0
 
   foreach ($exe in $EXEFiles) {
@@ -611,15 +618,15 @@ Function Set-EXE {
     if ($GUID -ne ' ') { $isInstalled = (Get-InstalledApplication -ProductCode $GUID).DisplayName }
     else { $isInstalled = " " }
 
-    If ($actionDate.action.ToUpper() -eq "ADD") { $action = "ADD" } else { $action = "REMOVE" }
-    If (Test-forVariable -varName $isInstalled) { $isInstalled = $false } else { $isInstalled = $true }
+    if ($actionDate.$name.action.ToUpper() -eq "ADD") { $action = "ADD" } else { $action = "REMOVE" }
+    if (Test-forVariable -varName $isInstalled) { $isInstalled = $false } else { $isInstalled = $true }
       
-    If ((($isInstalled -eq $false) -and ($action -eq "ADD")) -or (($isInstalled -eq $true) -and ($action -eq "REMOVE"))) { 
+    if ((($isInstalled -eq $false) -and ($action -eq "ADD")) -or (($isInstalled -eq $true) -and ($action -eq "REMOVE"))) { 
       $exe = "$exe" 
       Test-ParamFile -path $exe
       Write-Log -Message "Execute-Process -Path $exe -Parameters $CMDParam"
       Execute-Process -Path $exe -Parameters $CMDParam -WindowStyle 'Hidden' -IgnoreExitCodes $SuccessCode 
-      If (Test-forVariable -varName $TAG) { Set-Tags -actionDate "$TAG" }
+      if (Test-forVariable -varName $TAG) { Set-Tags -actionDate "$TAG" }
     } else { 
       if ($action -eq "ADD") { Write-Log -Message "GUID present, application already installed. Going to next step." }
       if ($action -eq "REMOVE") { Write-Log -Message "GUID not present, nothing to uninstall. Going to next step." }
@@ -634,44 +641,48 @@ Function Set-EXE {
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-WinFeature {
   param(
-      [Parameter(Mandatory = $True)]
-      $actionDate
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
   )
 
-    $FeatureName = $actionDate.featureName
+  $FeatureName = $actionDate.$name.featureName
 
-    if (!(Test-forVariable -varName $FeatureName)) {
-      $FeatureNames = Get-MultiData -SrcData $FeatureName
+  if (!(Test-forVariable -varName $FeatureName)) {
+    $FeatureNames = Get-MultiData -SrcData $FeatureName
 
-      foreach ($feature in $FeatureNames) {
-        If ($actionDate.action.ToUpper() -eq "ADD") {
-            Write-Log -Message "Enable-WindowsOptionalFeature -Online -FeatureName $feature -norestart -All"
-            Enable-WindowsOptionalFeature -Online -FeatureName $feature -norestart -all
-        } ElseIf ($actionDate.action.ToUpper() -eq "REMOVE") {   
-            Write-Log -Message "Disable-WindowsOptionalFeature -Online -FeatureName $feature -norestart"
-            Disable-WindowsOptionalFeature -Online -FeatureName $feature -norestart
-        } 
-      }
-    } else {
-      Write-Log -Message "Script failed, missing featureName parameter in $($MyInvocation.MyCommand)" -Severity 3 -Source $deployAppScriptFriendlyName
-      Exit-Script -ExitCode $Global:RCMissingParameter
-    }  
-  }
+    foreach ($feature in $FeatureNames) {
+      if ($actionDate.$name.action.ToUpper() -eq "ADD") {
+        Write-Log -Message "Enable-WindowsOptionalFeature -Online -FeatureName $feature -norestart -All"
+        Enable-WindowsOptionalFeature -Online -FeatureName $feature -norestart -all
+      } Elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {   
+        Write-Log -Message "Disable-WindowsOptionalFeature -Online -FeatureName $feature -norestart"
+        Disable-WindowsOptionalFeature -Online -FeatureName $feature -norestart
+      } 
+    }
+  } else {
+    Write-Log -Message "Script failed, missing featureName parameter in $($MyInvocation.MyCommand)" -Severity 3 -Source $deployAppScriptFriendlyName
+    Exit-Script -ExitCode $Global:RCMissingParameter
+  }  
+}
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-Sleep {
   param(
-      [Parameter(Mandatory = $True)]
-      $actionDate
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
   )
 
-  $Time = $actionDate.time
+  $Time = $actionDate.$name.time
 
   Write-Log -Message "Starts sleep for $Time."
 
-  If (($Time -like "*s") -or ($Time -like "*S")) {
+  if (($Time -like "*s") -or ($Time -like "*S")) {
     $Time = $Time.Replace("s","")
     $Time = $Time.Replace("S","")
     Start-Sleep -Seconds $Time 
@@ -684,20 +695,22 @@ Function Set-Sleep {
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-Registry {
   param(
-      [Parameter(Mandatory = $True)]
-      $actionDate
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
   )
 
-  $Key = $actionDate.key
+  $Key = $actionDate.$name.key
   $Key = Set-FullStringsFromVars -VarToCheck $Key
   $Keys = Get-MultiData -SrcData $Key
 
-  $Name = $actionDate.name
-  $Type = $actionDate.type
-  $Value = $actionDate.value
+  $Name = $actionDate.$name.name
+  $Type = $actionDate.$name.type
+  $Value = $actionDate.$name.value
 
-  If ($Key.ToUpper() -like "*.REG") {
-    if ($actionDate.action.ToUpper() -eq "ADD") {
+  if ($Key.ToUpper() -like "*.REG") {
+    if ($actionDate.$name.action.ToUpper() -eq "ADD") {
       foreach ($reg in $Keys) {
         if (-not($reg -like "*:\*")) { $keyPath = "$SourcePath\$reg" }
         else { $keyPath = "$reg" }
@@ -728,7 +741,7 @@ Function Set-Registry {
       $Key = Convert-RegistryPath -Key $Key
       Write-Log -Message "Set-Registry will proceed with: $Key."
 
-      if (($actionDate.action.ToUpper() -eq "ADD") -or ((Test-Path -Path $Key) -and ($actionDate.action.ToUpper() -eq "CHANGE"))) {
+      if (($actionDate.$name.action.ToUpper() -eq "ADD") -or ((Test-Path -Path $Key) -and ($actionDate.$name.action.ToUpper() -eq "CHANGE"))) {
         if (($Key -like "Registry::HKCU*") -or ($Key -like "Registry::HKEY_CURRENT_USER*") -or ($Key -like "Registry::HKEY_USERS*") -or ($Key -like "Registry::HKU*")) {
           Write-Log -Message "Will edit users registry."
 
@@ -745,21 +758,21 @@ Function Set-Registry {
           else {
             Set-RegistryKey -Key $Key
             if (-not (Test-RegValExists($Key, $Name))) {
-              If (($Key -ne "null") -and ($Name -ne "null") -and ($Type -ne "null") -and ($Value -ne "null")) { Set-RegistryKey -Key $Key -Name $Name -Type $Type -Value $Value } 
-              ElseIf (($Key -ne "null") -and ($Name -ne "null") -and ($Value -ne "null")) { Set-RegistryKey -Key $Key -Name $Name -Value $Value } 
-              ElseIf (($Key -ne "null") -and ($Value -ne "null")) { Set-RegistryKey -Key $Key -Value $Value }
+              if (($Key -ne "null") -and ($Name -ne "null") -and ($Type -ne "null") -and ($Value -ne "null")) { Set-RegistryKey -Key $Key -Name $Name -Type $Type -Value $Value } 
+              Elseif (($Key -ne "null") -and ($Name -ne "null") -and ($Value -ne "null")) { Set-RegistryKey -Key $Key -Name $Name -Value $Value } 
+              Elseif (($Key -ne "null") -and ($Value -ne "null")) { Set-RegistryKey -Key $Key -Value $Value }
             } Else {
               Write-Log -Message "Registry key $key\$name exists. Removing the key."
               Remove-RegistryKey -Key $Key -Name $Name
               
-              If (($Key -ne "null") -and ($Name -ne "null") -and ($Type -ne "null") -and ($Value -ne "null")) { Set-RegistryKey -Key $Key -Name $Name -Type $Type -Value $Value } 
-              ElseIf (($Key -ne "null") -and ($Name -ne "null") -and ($Value -ne "null")) { Set-RegistryKey -Key $Key -Name $Name -Value $Value } 
-              ElseIf (($Key -ne "null") -and ($Value -ne "null")) { Set-RegistryKey -Key $Key -Value $Value }            
+              if (($Key -ne "null") -and ($Name -ne "null") -and ($Type -ne "null") -and ($Value -ne "null")) { Set-RegistryKey -Key $Key -Name $Name -Type $Type -Value $Value } 
+              Elseif (($Key -ne "null") -and ($Name -ne "null") -and ($Value -ne "null")) { Set-RegistryKey -Key $Key -Name $Name -Value $Value } 
+              Elseif (($Key -ne "null") -and ($Value -ne "null")) { Set-RegistryKey -Key $Key -Value $Value }            
             }
           }
         }
       } 
-    } elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
+    } elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
       foreach ($reg in $Keys) {
         if (($reg -like "Registry::HKCU*") -or ($reg -like "Registry::HKEY_CURRENT_USER*") -or ($reg -like "Registry::HKEY_USERS*") -or ($reg -like "Registry::HKU*")) {
           Write-Log -Message "Will edit users registry."
@@ -773,7 +786,7 @@ Function Set-Registry {
 
           Set-RegistryValueForAllUnloadedUsers -Name $Name -Type $Type -Value $Value -Path $reg -Action $Action
         } else {
-          If (($reg -ne "null") -and ($Name -ne "null")) { Remove-RegistryKey -Key $reg -Name $Name } 
+          if (($reg -ne "null") -and ($Name -ne "null")) { Remove-RegistryKey -Key $reg -Name $Name } 
           else { Remove-RegistryKey -Key $reg } 
         }
       }
@@ -786,16 +799,18 @@ Function Set-Registry {
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-ScheduledTask {
   param(
-      [Parameter(Mandatory = $True)]
-      $actionDate
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
   )
 
-  $TaskName = $actionDate.taskName
+  $TaskName = $actionDate.$name.taskName
   $TasksNames = Get-MultiData -SrcData $TaskName
     
-  if ($actionDate.action.ToUpper() -eq "NEW") { }
-  elseIf ($actionDate.action.ToUpper() -eq "SET") { }
-  elseIf ($actionDate.action.ToUpper() -eq "REMOVE") {
+  if ($actionDate.$name.action.ToUpper() -eq "NEW") { }
+  elseif ($actionDate.$name.action.ToUpper() -eq "SET") { }
+  elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
     foreach ($task in $TasksNames) {
       if(Get-ScheduledTask $task -ErrorAction Ignore) { 
         Write-Log -Message "Removing Scheduled Task: $task."
@@ -810,15 +825,17 @@ Function Set-ScheduledTask {
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-DUMMYFunction {
   param(
-      [Parameter(Mandatory = $True)]
-      $actionDate
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
   )
 
-  If ($actionDate.action.ToUpper() -eq "ADD") {
-  } elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
-  } elseif ($actionDate.action.ToUpper() -eq "COPY") {
-  } elseif ($actionDate.action.ToUpper() -eq "MOVE") {
-  } elseif ($actionDate.action.ToUpper() -eq "EDIT") {
+  if ($actionDate.$name.action.ToUpper() -eq "ADD") {
+  } elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
+  } elseif ($actionDate.$name.action.ToUpper() -eq "COPY") {
+  } elseif ($actionDate.$name.action.ToUpper() -eq "MOVE") {
+  } elseif ($actionDate.$name.action.ToUpper() -eq "EDIT") {
   }
   
 }
@@ -828,14 +845,16 @@ Function Set-DUMMYFunction {
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-Pin { 
   param(
-      [Parameter(Mandatory = $True)]
-      $actionDate
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
   )
 
-  $FilePath = $actionDate.filePath
+  $FilePath = $actionDate.$name.filePath
   $FilePaths = Get-MultiData -SrcData $FilePath
 
-  $LnkType = $actionDate.lnkType
+  $LnkType = $actionDate.$name.lnkType
   $LnkTypes = Get-MultiData -SrcData $LnkType
 
   $forAllUsers = $False
@@ -858,30 +877,29 @@ Function Set-Pin {
               
         Write-Log -Message "FilePath - $file "
 
-        If ($actionDate.action.ToUpper() -eq "ADD") {
+        if ($actionDate.$name.action.ToUpper() -eq "ADD") {
           if ($type.ToUpper() -eq "TASKBAR") { Set-PinnedApplication -Action "PintoTaskbar" -FilePath $FilePath }
           elseif ($type.ToUpper() -eq "STARTMENU") { Set-PinnedApplication -Action "PintoStartMenu" -FilePath $FilePath }
           else {}
         }
-        If ($actionDate.action.ToUpper() -eq "REMOVE") { 
+        if ($actionDate.$name.action.ToUpper() -eq "REMOVE") { 
           if ($type.ToUpper() -eq "TASKBAR") { Set-PinnedApplication -Action "UnpinfromTaskbar" -FilePath $FilePath }
           elseif ($type.ToUpper() -eq "STARTMENU") { Set-PinnedApplication -Action "UnpinfromStartMenu" -FilePath $FilePath }
           else {}
         }  
       }
     } else {
-      If ($actionDate.action.ToUpper() -eq "ADD") {
+      if ($actionDate.$name.action.ToUpper() -eq "ADD") {
         if ($type.ToUpper() -eq "TASKBAR") { Set-PinnedApplication -Action "PintoTaskbar" -FilePath $FilePath }
         elseif ($type.ToUpper() -eq "STARTMENU") { Set-PinnedApplication -Action "PintoStartMenu" -FilePath $FilePath }
         else {}
       }
-      If ($actionDate.action.ToUpper() -eq "REMOVE") { 
+      if ($actionDate.$name.action.ToUpper() -eq "REMOVE") { 
         if ($type.ToUpper() -eq "TASKBAR") { Set-PinnedApplication -Action "UnpinfromTaskbar" -FilePath $FilePath }
         elseif ($type.ToUpper() -eq "STARTMENU") { Set-PinnedApplication -Action "UnpinfromStartMenu" -FilePath $FilePath }
         else {}
       }  
     }
-
     $x++
   }
 }
@@ -891,13 +909,15 @@ Function Set-Pin {
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-Shortcut {
   param(
-      [Parameter(Mandatory = $True)]
-      $actionDate
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
   )
 
-  <# If ($actionDate.action.ToUpper() -eq "ADD") {
-  } elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
-  } elseif ($actionDate.action.ToUpper() -eq "EDIT") {
+  <# if ($actionDate.$name.action.ToUpper() -eq "ADD") {
+  } elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
+  } elseif ($actionDate.$name.action.ToUpper() -eq "EDIT") {
   }
 
   $LnkName = $Data[0]
@@ -920,7 +940,7 @@ Function Set-Shortcut {
     [string]$tmp = $link.TargetPath  
     [string]$tmp = [string]$tmp.Replace($from.tostring(),$to.ToString()) 
         
-    #If you need workingdirectory change please uncomment the below line.
+    #if you need workingdirectory change please uncomment the below line.
     #$link.WorkingDirectory = [string]$WorkingDirectory.Replace($from.tostring(),$to.ToString()) 
     #$link.Arguments = "-arguments" 
 
@@ -935,10 +955,10 @@ Function Set-Shortcut {
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-Directory {
   param(
-      [Parameter(Mandatory = $True)]
-      $actionDate,
-      [Parameter(Mandatory = $True)]
-      $name
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
   )
 
  <#  directory_1:
@@ -984,7 +1004,7 @@ directory_4:
   $mode = $actionDate.$name.mode
   if (!(Test-forVariable -varName $mode)) { $allModes = Get-MultiData -SrcData $mode }
 
-  If ($actionDate.$name.action.ToUpper() -eq "ADD") {
+  if ($actionDate.$name.action.ToUpper() -eq "ADD") {
     $x = 0
     foreach ($dir in $Dirs) {
       if ($isAllForce.Length -eq $Dirs.Length) { $localForce = $isAllForce[$x] }
@@ -1000,7 +1020,6 @@ directory_4:
       } else { 
         if (-not(Test-Path $dir -PathType Container)) { New-Item -ItemType Directory -Path $dir -Force:$localForce | Out-Null }
       }
-
       $x++
     }
   } elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
@@ -1021,7 +1040,7 @@ directory_4:
           Write-Log -Message "\User\dir - $($User)$dir"
           $dirU = "$User$dir"
 
-          If ($LastChar -eq "*") {
+          if ($LastChar -eq "*") {
             $BaseDir = ""
             $DirArr = $dirU.Split("\")
             $ArrLeng = $DirArr.Length
@@ -1030,14 +1049,14 @@ directory_4:
 
             For ($x = 0; $x -lt $ArrLeng - 1; $x++) {
                 Write-Log -Message -Message "DirArr[$x]: $DirArr[$x] " -Severity 2 -Source $deployAppScriptFriendlyName
-                If ($BaseDir -eq "") { $BaseDir = $DirArr[$x] }
+                if ($BaseDir -eq "") { $BaseDir = $DirArr[$x] }
                 else { $BaseDir = $BaseDir + "\" + $DirArr[$x] }
             }
 
             $PartName = ($DirArr[$DirArr.Length - 1]).Trim("*")
             $Paths = Get-ChildItem $BaseDir | Where-Object {$_.Attributes -match'Directory'}
 
-            If (!($Paths)) { Write-Log -Message "There is no folders match the criterium." } 
+            if (!($Paths)) { Write-Log -Message "There is no folders match the criterium." } 
             Else {
               Write-Log -Message -Message "PartName: $PartName " -Severity 2 -Source $deployAppScriptFriendlyName
               Write-Log -Message -Message "BaseDir: $BaseDir " -Severity 2 -Source $deployAppScriptFriendlyName
@@ -1045,7 +1064,7 @@ directory_4:
 
               foreach($path in $Paths) {
                 $dirP = $path.FullName
-                If (($dirP -like "*$PartName*") -or ($dirP -like "*$PartName")) {
+                if (($dirP -like "*$PartName*") -or ($dirP -like "*$PartName")) {
                   Write-Log -Message -Message "Directory: $dirP" -Severity 2 -Source $deployAppScriptFriendlyName
                   Remove-Dir -dir $dir -dirMode $dirMode -localForce $localForce
                 }
@@ -1054,7 +1073,7 @@ directory_4:
           } else { Remove-Dir -dir $dirU -dirMode $dirMode -localForce $localForce }
         }
       } else { 
-        If ($LastChar -eq "*") { 
+        if ($LastChar -eq "*") { 
           $BaseDir = ""
           $DirArr = $dir.Split("\")
           $ArrLeng = $DirArr.Length
@@ -1063,14 +1082,14 @@ directory_4:
 
           For ($x = 0; $x -lt $ArrLeng - 1; $x++) {
               Write-Log -Message -Message "DirArr[$x]: $DirArr[$x] " -Severity 2 -Source $deployAppScriptFriendlyName
-              If ($BaseDir -eq "") { $BaseDir = $DirArr[$x] }
+              if ($BaseDir -eq "") { $BaseDir = $DirArr[$x] }
               else { $BaseDir = $BaseDir + "\" + $DirArr[$x] }
           }
 
           $PartName = ($DirArr[$DirArr.Length - 1]).Trim("*")
           $Paths = Get-ChildItem $BaseDir | Where-Object {$_.Attributes -match'Directory'}
 
-          If (!($Paths)) { Write-Log -Message "There is no folders match the criterium." 
+          if (!($Paths)) { Write-Log -Message "There is no folders match the criterium." 
           } else {
             Write-Log -Message -Message "PartName: $PartName " -Severity 2 -Source $deployAppScriptFriendlyName
             Write-Log -Message -Message "BaseDir: $BaseDir " -Severity 2 -Source $deployAppScriptFriendlyName
@@ -1078,7 +1097,7 @@ directory_4:
 
             foreach($path in $Paths) {
               $dirP = $path.FullName
-              If (($dirP -like "*$PartName*") -or ($dirP -like "*$PartName")) {
+              if (($dirP -like "*$PartName*") -or ($dirP -like "*$PartName")) {
                 Write-Log -Message -Message "Directory: $dirP" -Severity 2 -Source $deployAppScriptFriendlyName
                 Remove-Dir -dir $dir -dirMode $dirMode -localForce $localForce
               }
@@ -1086,7 +1105,6 @@ directory_4:
           }
         } else { Remove-Dir -dir $dir -dirMode $dirMode -localForce $localForce }
       }
-
       $x++
     }
   } elseif ($actionDate.$name.action.ToUpper() -eq "COPY") {
@@ -1176,12 +1194,12 @@ directory_4:
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Remove-Dir {
   param(
-      [Parameter(Mandatory = $True)]
-      $dir,
-      [Parameter(Mandatory = $False)]
-      $dirMode = "",
-      [Parameter(Mandatory = $False)]
-      $localForce = $True
+    [Parameter(Mandatory = $True)]
+    $dir,
+    [Parameter(Mandatory = $False)]
+    $dirMode = "",
+    [Parameter(Mandatory = $False)]
+    $localForce = $True
   )
 
   $areFiles = $False
@@ -1206,23 +1224,32 @@ Function Remove-Dir {
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-Script {
   param(
-      [Parameter(Mandatory = $True)]
-      $actionDate
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
   )
   
-  Write-Log -Message "Starting: $($MyInvocation.MyCommand)/$($actionDate.appName)." -Source $deployAppScriptFriendlyName
+  Write-Log -Message "Starting: $($MyInvocation.MyCommand)/$($actionDate.$name.appName)." -Source $deployAppScriptFriendlyName
 
-    $scriptNames = Get-MultiData -SrcData $scriptName
-    $scriptDir = Get-MultiData -SrcData $scriptDir
-    $scriptParam = Get-MultiData -SrcData $scriptParam
+  $scriptName = $actionDate.$name.scriptName
+  $scriptDir = $actionDate.$name.scriptDir
+  $scriptParam = $actionDate.$name.scriptParam
+
+  $scriptNames = Get-MultiData -SrcData $scriptName
+  $scriptDirs = Get-MultiData -SrcData $scriptDir
+  $scriptParams = Get-MultiData -SrcData $scriptParam
 
   if (($scriptNames.Length -gt 0) -and ($scriptNames[0] -ne "") -and ($null -ne $scriptNames[0])) { 
-    $x = 0
-
+  $x = 0
     foreach($script in $scriptNames) { 
       $script = Set-FullStringsFromVars -VarToCheck $script
-      $scriptDirectory = Set-FullStringsFromVars -VarToCheck $scriptDir[$x]
-      $scriptParameter = Set-FullStringsFromVars -VarToCheck $scriptParam[$x]
+
+      if (Test-forArrays -arr1 $scriptNames -arr2 $scriptDirs) { $scriptDirectory = Set-FullStringsFromVars -VarToCheck $scriptDirs[$x] } 
+      else { $scriptDirectory = Set-FullStringsFromVars -VarToCheck $scriptDir }
+
+      if (Test-forArrays -arr1 $scriptNames -arr2 $scriptParams) { $scriptParameter = Set-FullStringsFromVars -VarToCheck $scriptParams[$x] } 
+      else { $scriptParameter = Set-FullStringsFromVars -VarToCheck $scriptParam }
 
       Write-Log -Message "Trying to start: $scriptDirectory\$script $scriptParameter"
 
@@ -1273,11 +1300,13 @@ Function Set-Script {
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-UnblockFiles {
   param(
-      [Parameter(Mandatory = $True)]
-      $actionDate
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
   )
 
-  $DirPath = $actionDate.path
+  $DirPath = $actionDate.$name.path
   $DirsPath = Get-MultiData -SrcData $DirPath
 
   if (($DirsPath.Length -gt 0) -and ($DirsPath[0] -ne "") -and ($null -ne $DirsPath[0])) { 
@@ -1301,10 +1330,10 @@ Function Set-UnblockFiles {
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-File {
   param(
-      [Parameter(Mandatory = $True)]
-      $actionDate,
-      [Parameter(Mandatory = $True)]
-      $name
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
   )
 
 <# 
@@ -1502,7 +1531,7 @@ Function Set-DetectionMethod {
   )
 
   #INSTALL,ADD,DetectionMethod,GUID=PKGName=file=registry;regvalue,ExitCodeValue;allNegative    
-  #can test for negative or positive. If - is added as first sign on GUID, PKGName,File orRegistry then script will end if -not will be as result,
+  #can test for negative or positive. if - is added as first sign on GUID, PKGName,File orRegistry then script will end if -not will be as result,
   #if + or simply - will be missing test will be done for positive.
 
   $GUIDResult     = 0
@@ -1512,13 +1541,13 @@ Function Set-DetectionMethod {
   $ExitScript     = $False
 
 
-  if (Test-forVariable -varName $actionDate.exitCode) { $ExitCodeVarName = 0 }
-  else { $ExitCodeVarName = $actionDate.exitCode }
+  if (Test-forVariable -varName $actionDate.$name.exitCode) { $ExitCodeVarName = 0 }
+  else { $ExitCodeVarName = $actionDate.$name.exitCode }
 
-  if (Test-forVariable -varName $actionDate.allNegative) { $allNegative = 'false' }
-  else { $allNegative = $actionDate.allNegative }
+  if (Test-forVariable -varName $actionDate.$name.allNegative) { $allNegative = 'false' }
+  else { $allNegative = $actionDate.$name.allNegative }
 
-  $AppGUID = $actionDate.GUID
+  $AppGUID = $actionDate.$name.GUID
   if (Test-forVariable -varName $AppGUID) { $testForGUID = $false } 
   else { 
     if ($AppGUID -like "-*") { $GUIDForNegative = $True; $AppGUID = $AppGUID.substring(1) } 
@@ -1526,7 +1555,7 @@ Function Set-DetectionMethod {
     $testForGUID = $true
   }
 
-  $AppPKGName = $actionDate.TAG
+  $AppPKGName = $actionDate.$name.TAG
   if (Test-forVariable -varName $AppPKGName) { $testForPKGName = $false } 
   else {
     if ($AppPKGName -like "-*") { $TAGForNegative = $True; $AppPKGName = $AppPKGName.substring(1) }
@@ -1534,7 +1563,7 @@ Function Set-DetectionMethod {
     $testForPKGName = $true
   }
 
-  $File = $actionDate.filePath 
+  $File = $actionDate.$name.filePath 
   if (Test-forVariable -varName $File) { $testForFile = $false } 
   else {
     if ($File -like "-*") { $FILEForNegative = $True; $File = $File.substring(1) } 
@@ -1542,7 +1571,7 @@ Function Set-DetectionMethod {
     $testForFile = $true
   }
   
-  $RegPath = $actionDate.registryPath
+  $RegPath = $actionDate.$name.registryPath
   if (Test-forVariable -varName $RegPath) { $testForReg = $false } 
   else {
     if ($RegPath -like "-*") { $REGForNegative = $True; $RegPath = $RegPath.substring(1) } 
@@ -1550,8 +1579,8 @@ Function Set-DetectionMethod {
     $testForReg = $true
   }
 
-  $RegVarName = $actionDate.registryVariableName
-  $RegValue =$actionDate.registryVariableValue
+  $RegVarName = $actionDate.$name.registryVariableName
+  $RegValue =$actionDate.$name.registryVariableValue
 
 
   if ($testForGUID) {
@@ -1563,10 +1592,10 @@ Function Set-DetectionMethod {
           $isInstalled = (Get-InstalledApplication -ProductCode $GUID).DisplayName
           Write-Log -Message "isInstalled - $isInstalled"
 
-          If ([string]::IsNullOrEmpty($isInstalled) -or ($isInstalled -eq "") -or $isInstalled -eq " ") {
+          if ([string]::IsNullOrEmpty($isInstalled) -or ($isInstalled -eq "") -or $isInstalled -eq " ") {
             $ProdCode = (Get-InstalledApplication -Name $GUID).ProductCode
                   
-            If ([string]::IsNullOrEmpty($ProdCode) -or ($ProdCode -eq "") -or $ProdCode -eq " ") { $GUIDResult = 1 } 
+            if ([string]::IsNullOrEmpty($ProdCode) -or ($ProdCode -eq "") -or $ProdCode -eq " ") { $GUIDResult = 1 } 
             else { $GUIDResult = 0 }
           } else { $GUIDResult = 0 }
         } else { $GUIDResult = 2 }
@@ -1616,7 +1645,7 @@ Function Set-DetectionMethod {
         $x = 0
 
         foreach ($arrItem in $RegPathArr) { 
-          If ($arrItem -ne $TMPRegVar) {
+          if ($arrItem -ne $TMPRegVar) {
             if ($x -eq 0) { $TMPRegPath = $arrItem }
             else { $TMPRegPath = "$TMPRegPath\$arrItem" }
           }
@@ -1634,7 +1663,7 @@ Function Set-DetectionMethod {
           }
         } else {
           Write-Log -Message "RegValue option."
-          If (Test-RegistryValue -Key $TMPRegPath -Value $TMPRegVar) { 
+          if (Test-RegistryValue -Key $TMPRegPath -Value $TMPRegVar) { 
             $ReadReg = Get-ItemPropertyValue $TMPRegPath -Name $TMPRegVar
             Write-Log -Message "ReadReg - $ReadReg"
             if (($ReadReg -like "*$RegValue") -or ($ReadReg -like "*$RegValue*") -or ($ReadReg -like "$RegValue") -or ($ReadReg -like "$RegValue*")) { $RegResult = 0 }
@@ -1710,7 +1739,7 @@ Function Set-DetectionMethod {
 
   [int]$intNum = [convert]::ToInt32($ExitCodeVarName, 10)
 
-  If ($ExitScript -eq $True) { Write-Log -Message "Tests passed, going to next function, RC = 0." }
+  if ($ExitScript -eq $True) { Write-Log -Message "Tests passed, going to next function, RC = 0." }
   else  {   
     Write-Log -Message "Will Exit Script - ExitCodeVarName = $ExitCodeVarName."
     Set-Finalize -ExitCode $intNum 
@@ -1723,27 +1752,29 @@ Function Set-DetectionMethod {
 Function Set-MSIX {
   param(
     [Parameter(Mandatory = $True)]
-    $actionDate
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
   )
 
-  $MSIXFile = $actionDate.file
-  $MSIXName = $actionDate.name
-  $MSIXContext = $actionDate.context
-  $VolumeName = $actionDate.volumeName
-  $AppID = $actionDate.appID
-  $CMDToRun = $actionDate.cmdToRun
+  $MSIXFile = $actionDate.$name.file
+  $MSIXName = $actionDate.$name.name
+  $MSIXContext = $actionDate.$name.context
+  $VolumeName = $actionDate.$name.volumeName
+  $AppID = $actionDate.$name.appID
+  $CMDToRun = $actionDate.$name.cmdToRun
 
   $x = 0
     
-  If ($actionDate.action.ToUpper() -eq "ADD") {
+  if ($actionDate.$name.action.ToUpper() -eq "ADD") {
     $MSIXFiles = Get-MultiData -SrcData $MSIXFile
     foreach ($msix in $MSIXFiles) {
       $msix = Set-FullStringsFromVars -VarToCheck $msix 
       if (($msix -like "\*") -or (((-not ($msix -like "*:\*")) -and (-not ($msix -like "*%*"))))) { $msix = "$SourcePath\$msix"}  
-      Test-IfParamFileExist -path $msix
+      Test-ifParamFileExist -path $msix
       Add-AppPackage -path "$msix"
     }
-  } ElseIf ($actionDate.action.ToUpper() -eq "REMOVE"){
+  } Elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE"){
     $MSIXNames = Get-MultiData -SrcData $MSIXName
     $MSIXsContext = Get-MultiData -SrcData $MSIXContext
     foreach ($name in $MSIXNames) {
@@ -1756,7 +1787,7 @@ Function Set-MSIX {
       }
       $x++
     }
-  } ElseIf ($actionDate.action.ToUpper() -eq "MOVE"){
+  } Elseif ($actionDate.$name.action.ToUpper() -eq "MOVE"){
     $MSIXNames = Get-MultiData -SrcData $MSIXName
     $VolumeNames = Get-MultiData -SrcData $VolumeName
     foreach ($name in $MSIXNames) {
@@ -1768,7 +1799,7 @@ Function Set-MSIX {
       }
       $x++
     }  
-  } ElseIf ($actionDate.action.ToUpper() -eq "RUN"){
+  } Elseif ($actionDate.$name.action.ToUpper() -eq "RUN"){
     $MSIXNames = Get-MultiData -SrcData $MSIXName
     $AppIDs = Get-MultiData -SrcData $AppID
     $CMDsToRun = Get-MultiData -SrcData $CMDToRun
@@ -1793,17 +1824,19 @@ Function Set-MSIX {
 Function Set-APPV {
   param(
     [Parameter(Mandatory = $True)]
-    $actionDate
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
   )
 
-  $AppVFile = $actionDate.file
-  $Context = $actionDate.context
-  $LogType = $actionDate.logType
-  $AppVPKGName = $actionDate.appVPKGName
+  $AppVFile = $actionDate.$name.file
+  $Context = $actionDate.$name.context
+  $LogType = $actionDate.$name.logType
+  $AppVPKGName = $actionDate.$name.appVPKGName
 
   $x = 0
 
-  If ($actionDate.action.ToUpper() -eq "ADD") {
+  if ($actionDate.$name.action.ToUpper() -eq "ADD") {
     $AppVFiles = Get-MultiData -SrcData $AppVFile
     $Contexts = Get-MultiData -SrcData $Context
     $LogTypes = Get-MultiData -SrcData $LogType
@@ -1811,19 +1844,19 @@ Function Set-APPV {
   
     foreach ($appv in $AppVFiles) {
       if (($AppVFiles.Length -eq $Contexts.Length) -and ($AppVFiles.Length -eq $LogTypes.Length) -and ($AppVFiles.Length -eq $AppVPKGNames.Length)) {
-        If ($appv -like "*.appv") { $appv = $appv }
+        if ($appv -like "*.appv") { $appv = $appv }
         else { $appv = "$appv.appv" }
         
         $appv = Set-FullStringsFromVars -VarToCheck $appv
         if (($appv -like "\*") -or (((-not ($appv -like "*:\*")) -and (-not ($appv -like "*%*"))))) { $appv = "$SourcePath\$appv"}  
-        Test-IfParamFileExist -path $appv
-
+        
+        Test-ifParamFileExist -path $appv
         Get-AppvClientPackage -Name $AppVPKGNames[$x] | Stop-AppvClientPackage | Remove-AppvClientPackage
         Add-AppvClientPackage -Path $appv | Publish-AppvClientPackage -Global | Mount-AppvClientPackage -Verbose	
       }
       $x++
     }
-  } elseif ($actionDate.action.ToUpper() -eq "REMOVE") {
+  } elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
     $AppVPKGNames = Get-MultiData -SrcData $AppVPKGName
     foreach ($appv in $AppVPKGNames) { Get-AppvClientPackage -Name $AppVPKGName | Stop-AppvClientPackage | Remove-AppvClientPackage }
   }
@@ -1834,85 +1867,89 @@ Function Set-APPV {
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-Tags {
   param(
-      [Parameter(Mandatory = $True)]
-      $actionDate,
-      [Parameter(Mandatory = $False)]
-      $Action = "ADD"
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name,
+    [Parameter(Mandatory = $False)]
+    $Action = "ADD"
   )
 
-  
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-FullStringsFromVars {
-    param(
-        [Parameter(Mandatory = $True)]
-        [AllowEmptyString()]
-        [AllowNull()]
-        [String]$VarToCheck
-    )
+  param(
+    [Parameter(Mandatory = $True)]
+    [AllowEmptyString()]
+    [AllowNull()]
+    [String]$VarToCheck
+  )
 
-    #if (($VarToCheck -eq "") -or ($VarToCheck -eq " ") -or ($null -eq $VarToCheck) -or ($empty -eq $VarToCheck)) { Return "" }
-    if (Test-forVariable -varName $VarToCheck) { Return "" }
-    else {
-      $tempered = $False
-      $VarToCheckBak  = $VarToCheck
-      $VarToCheck     = $VarToCheck.ToLower()
+  #if (($VarToCheck -eq "") -or ($VarToCheck -eq " ") -or ($null -eq $VarToCheck) -or ($empty -eq $VarToCheck)) { Return "" }
+  if (Test-forVariable -varName $VarToCheck) { Return "" }
+  else {
+    $tempered = $False
+    $VarToCheckBak  = $VarToCheck
+    $VarToCheck     = $VarToCheck.ToLower()
 
 
-          if (Get-IsToChange -VarToTest "%programdata%" -VarToChange $VarToCheckBak) { $VarToCheck = $VarToCheckBak.Replace("%programdata%",$ProgramData); $tempered = $True }
-          if (Get-IsToChange -VarToTest "%logfiles%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%logfiles%",$env:LOGFILES); $tempered = $True }
-          if (Get-IsToChange -VarToTest "%programfiles(x86)%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%programfiles(x86)%",$ProgramFiles); $tempered = $True }
-          if (Get-IsToChange -VarToTest "%programfiles64%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%programfiles64%",$ProgramFiles64); $tempered = $True }
-          #if (($VarToCheck -like "%programfiles64%*") -or ($VarToCheck -like "*%programfiles64%*") -or ($VarToCheck -like "%programfiles64%") -or ($VarToCheck -like "*%programfiles64%")) { $VarToCheck = $VarToCheck.Replace("%programfiles64%",$ProgramFiles64); $tempered = $True }
-          #if (($VarToCheck -like "%programfiles%*") -or ($VarToCheck -like "*%programfiles%*") -or ($VarToCheck -like "%programfiles%") -or ($VarToCheck -like "*%programfiles%")) { $VarToCheck = $VarToCheck.Replace("%programfiles%",$ProgramFiles); $tempered = $True }
-          if (Get-IsToChange -VarToTest "%configfilespath%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%configfilespath%",$ConfigFilesPath); $tempered = $True }
-          if (Get-IsToChange -VarToTest "%srcfilepath%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%srcfilepath%",$SourcePath); $tempered = $True }
-          if (Get-IsToChange -VarToTest "%windir%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%windir%",$windir); $tempered = $True }
-          if (Get-IsToChange -VarToTest "%temp%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%temp%",$Temp); $tempered = $True }
-          if (Get-IsToChange -VarToTest "%public%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%public%",$PUBLIC); $tempered = $True }
-          if (Get-IsToChange -VarToTest "%programdata%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%programdata%",$ProgramData); $tempered = $True }
-          if (Get-IsToChange -VarToTest "%commonprogramfiles%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%commonprogramfiles%",$COMMONPROGRAMFILES64); $tempered = $True }
-          if (Get-IsToChange -VarToTest "%systemdrive%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%systemdrive%",$env:SystemDrive); $tempered = $True }
-          if (Get-IsToChange -VarToTest "%rootdrive%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%rootdrive%",$env:SystemDrive); $tempered = $True }
-          if (Get-IsToChange -VarToTest "%pkglogdir%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%pkglogdir%",$configToolkitLogDir); $tempered = $True }
-          if (Get-IsToChange -VarToTest "%PKGName%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%PKGName%",$Global:PKGName); $tempered = $True }
-          if (Get-IsToChange -VarToTest "%hostname%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%hostname%",$env:computername); $tempered = $True }
-          if (Get-IsToChange -VarToTest "%prelogdir%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%prelogdir%",$PreLogDir); $tempered = $True }
-          if (Get-IsToChange -VarToTest "%computername%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%computername%",$env:computername); $tempered = $True }
-          if (Get-IsToChange -VarToTest "%domain%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%domain%",$env:USERDOMAINNAME); $tempered = $True }
+    if (Get-IsToChange -VarToTest "%programdata%" -VarToChange $VarToCheckBak) { $VarToCheck = $VarToCheckBak.Replace("%programdata%",$ProgramData); $tempered = $True }
+    if (Get-IsToChange -VarToTest "%logfiles%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%logfiles%",$env:LOGFILES); $tempered = $True }
+    if (Get-IsToChange -VarToTest "%programfiles(x86)%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%programfiles(x86)%",$ProgramFiles); $tempered = $True }
+    if (Get-IsToChange -VarToTest "%programfiles64%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%programfiles64%",$ProgramFiles64); $tempered = $True }
+    #if (($VarToCheck -like "%programfiles64%*") -or ($VarToCheck -like "*%programfiles64%*") -or ($VarToCheck -like "%programfiles64%") -or ($VarToCheck -like "*%programfiles64%")) { $VarToCheck = $VarToCheck.Replace("%programfiles64%",$ProgramFiles64); $tempered = $True }
+    #if (($VarToCheck -like "%programfiles%*") -or ($VarToCheck -like "*%programfiles%*") -or ($VarToCheck -like "%programfiles%") -or ($VarToCheck -like "*%programfiles%")) { $VarToCheck = $VarToCheck.Replace("%programfiles%",$ProgramFiles); $tempered = $True }
+    if (Get-IsToChange -VarToTest "%configfilespath%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%configfilespath%",$ConfigFilesPath); $tempered = $True }
+    if (Get-IsToChange -VarToTest "%srcfilepath%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%srcfilepath%",$SourcePath); $tempered = $True }
+    if (Get-IsToChange -VarToTest "%windir%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%windir%",$windir); $tempered = $True }
+    if (Get-IsToChange -VarToTest "%temp%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%temp%",$Temp); $tempered = $True }
+    if (Get-IsToChange -VarToTest "%public%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%public%",$PUBLIC); $tempered = $True }
+    if (Get-IsToChange -VarToTest "%programdata%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%programdata%",$ProgramData); $tempered = $True }
+    if (Get-IsToChange -VarToTest "%commonprogramfiles%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%commonprogramfiles%",$COMMONPROGRAMFILES64); $tempered = $True }
+    if (Get-IsToChange -VarToTest "%systemdrive%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%systemdrive%",$env:SystemDrive); $tempered = $True }
+    if (Get-IsToChange -VarToTest "%rootdrive%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%rootdrive%",$env:SystemDrive); $tempered = $True }
+    if (Get-IsToChange -VarToTest "%pkglogdir%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%pkglogdir%",$configToolkitLogDir); $tempered = $True }
+    if (Get-IsToChange -VarToTest "%PKGName%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%PKGName%",$Global:PKGName); $tempered = $True }
+    if (Get-IsToChange -VarToTest "%hostname%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%hostname%",$env:computername); $tempered = $True }
+    if (Get-IsToChange -VarToTest "%prelogdir%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%prelogdir%",$PreLogDir); $tempered = $True }
+    if (Get-IsToChange -VarToTest "%computername%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%computername%",$env:computername); $tempered = $True }
+    if (Get-IsToChange -VarToTest "%domain%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%domain%",$env:USERDOMAINNAME); $tempered = $True }
 
-          if (Get-IsToChange -VarToTest "%datetime%" -VarToChange $VarToCheck) { 
-              $DateTime = Get-Date -Format "yyyy_MM_dd_hh_mm_ss"
-              $VarToCheck = $VarToCheck.Replace("%datetime%",$DateTime)
-              $tempered = $True 
-          }
-          
-          if (Get-IsToChange -VarToTest "%allusers%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%allusers%",""); $tempered = $True } 
-              
-      # %SYSTEMDRIVE% %COMMONPROGRAMFILES(x86)%
-      # AllUsersStartMenu AllUsersPrograms AllUsersStartup AllUsersDesktop Fonts		
-      
-      If ($tempered) { Return $VarToCheck }
-      else { Return $VarToCheckBak }
+    if (Get-IsToChange -VarToTest "%datetime%" -VarToChange $VarToCheck) { 
+      $DateTime = Get-Date -Format "yyyy_MM_dd_hh_mm_ss"
+      $VarToCheck = $VarToCheck.Replace("%datetime%",$DateTime)
+      $tempered = $True 
     }
+          
+    if (Get-IsToChange -VarToTest "%allusers%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%allusers%",""); $tempered = $True } 
+              
+    # %SYSTEMDRIVE% %COMMONPROGRAMFILES(x86)%
+    # AllUsersStartMenu AllUsersPrograms AllUsersStartup AllUsersDesktop Fonts		
+      
+    if ($tempered) { Return $VarToCheck }
+    else { Return $VarToCheckBak }
+  }
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Get-IsToChange {
+  [OutputType([bool])]
   param(
-      [Parameter(Mandatory = $True)]
-      [String]$VarToTest,
-      [Parameter(Mandatory = $True)]
-      [String]$VarToChange
+    [Parameter(Mandatory = $True)]
+    [String]$VarToTest,
+    [Parameter(Mandatory = $True)]
+    [String]$VarToChange
   )
   
-  if (($VarToChange -like "$VarToTest*") -or ($VarToChange -like "*$VarToTest*") -or ($VarToChange -like "$VarToTest") -or ($VarToChange -like "*$VarToTest")) { return $true }
-  else { return $false } 
+  $RC = $false
+  if (($VarToChange -like "$VarToTest*") -or ($VarToChange -like "*$VarToTest*") -or ($VarToChange -like "$VarToTest") -or ($VarToChange -like "*$VarToTest")) { $RC = $true }
+ 
+  Return $RC
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1920,14 +1957,14 @@ Function Get-IsToChange {
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Get-MultiData {
   param(
-      [Parameter(Mandatory = $True)]
-      [AllowEmptyString()]
-      [AllowNull()]
-      [String]$SrcData,
-      [Parameter(Mandatory = $False)]
-      [String]$PreData = "null",
-      [Parameter(Mandatory = $False)]
-      [String]$Delimeter = ","
+    [Parameter(Mandatory = $True)]
+    [AllowEmptyString()]
+    [AllowNull()]
+    [String]$SrcData,
+    [Parameter(Mandatory = $False)]
+    [String]$PreData = "null",
+    [Parameter(Mandatory = $False)]
+    [String]$Delimeter = ","
   )
   
   if (($SrcData -like "*$Delimeter*") -or ($SrcData -like "*$Delimeter") -or ($SrcData -like "$Delimeter*")) { $returnData = $SrcData.Split($Delimeter) }
@@ -1947,18 +1984,19 @@ Function Get-MultiData {
 
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-Function Test-IfParamFileExist {
-    param(
-        [Parameter(Mandatory = $True)]
-        [String]$path
-    )
+Function Test-ifParamFileExist {
+  [OutputType([bool])]
+  param(
+    [Parameter(Mandatory = $True)]
+    [String]$path
+  )
 
-    Write-Log -Message "Testing if: $path is a path or file and if param exist."
+  Write-Log -Message "Testing if: $path is a path or file and if param exist."
 
-    If ((Test-Path -Path $path) -eq $True) { Write-Log -Message "Path: $path exist, going next."; Return $True }
-    elseif (([System.IO.File]::Exists($path)) -eq $True) { Write-Log -Message "File: $path exist, going next."; Return $True }
-    elseif ("null" -eq $path) { Write-Log -Message "Skipping param, is null."; Return $True }
-    else { Write-Log -Message "$path missing, exiting script with RC = -1."; Set-Finalize -ExitCode -1 }
+  if ((Test-Path -Path $path) -eq $True) { Write-Log -Message "Path: $path exist, going next."; Return $True }
+  elseif (([System.IO.File]::Exists($path)) -eq $True) { Write-Log -Message "File: $path exist, going next."; Return $True }
+  elseif ("null" -eq $path) { Write-Log -Message "Skipping param, is null."; Return $True }
+  else { Write-Log -Message "$path missing, exiting script with RC = -1."; Set-Finalize -ExitCode -1 }
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2010,12 +2048,13 @@ Function Get-DiscSpace {
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Test-forVariable {
+  [OutputType([bool])]
 	param( 
 		$varName
 	)
-
-  if ([string]::IsNullOrEmpty($varName) -or ($varName -eq "") -or ($varName -eq " ") -or ($varName.ToUpper() -eq "NULL")) { $RC = $TRUE }
-  else { $RC = $FALSE }
+  
+  $RC = $False
+  if ([string]::IsNullOrEmpty($varName) -or ($varName -eq "") -or ($varName -eq " ") -or ($varName.ToUpper() -eq "NULL")) { $RC = $True }
   
   Return $RC
 }
@@ -2024,10 +2063,12 @@ Function Test-forVariable {
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Test-forArrays {
+  [OutputType([bool])]
 	param( 
 		$arr1,
     $arr2
-	)
+  )
+  
   $RC = $False
   if ((($arr1 -is [array]) -and ($arr2 -is [array]) -and (($arr1.Length -eq $arr2.Length))) -or (!($arr1 -is [array]) -and !($arr2 -is [array]))) { $RC = $True }
   
