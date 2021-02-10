@@ -60,7 +60,7 @@ Function Set-YAMLActions {
     if ($name -like "office_*") { Set-MSOffice -actionDate $actionDate -name $name }                    #to test, basic logic was done.
     if ($name -like "activesetup_*") { Set-ActiveSetups -actionDate $actionDate -name $name }           #to test, basic logic was done.
     if ($name -like "permissions_*") { Set-Permissions -actionDate $actionDate -name $name }            #to test, basic logic was done.
-    if ($name -like "variable_*") { Set-VARs -actionDate $actionDate -name $name }                      #todo (os vars and script vars) !!!!!!
+    if ($name -like "variable_*") { Set-VARs -actionDate $actionDate -name $name }                      #to test, basic logic was done.
     if ($name -like "shortcut_*") { Set-Shortcut -actionDate $actionDate -name $name }                  #started but need to be done from sratch.
     if ($name -like "if_*") { Set-ifStatement -actionDate $actionDate -name $name }                     #todo
     if ($name -like "appvCG_*") { Set-APPVCG -actionDate $actionDate -name $name }                      #todo
@@ -2003,59 +2003,63 @@ Function Set-VARs {
     $name
   )
 
+  #INSTALL,ADD,VAR,type=name=value=context,null
+  #UNINSTALL,IF,VAR,2000,null
+  #System,User,Process
 
-  
+  Write-Log -Message "Starting: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
 
-    #INSTALL,ADD,VAR,type=name=value=context,null
-    #UNINSTALL,IF,VAR,2000,null
-    #System,User,Process
+  $VarName = $actionDate.$name.path
+  $VarValue = $actionDate.$name.path
+  $VarType = $actionDate.$name.path
+  $VarContext = $actionDate.$name.path
 
-    $VarType = $Data[0]
-    $VarName = $Data[1]
-    $VarValue = $Data[2]
-    $VarContext = $Data[3]
+  $VarNames = Get-MultiData -SrcData $VarName
+  $VarValues = Get-MultiData -SrcData $VarValue
+  $VarContexts = Get-MultiData -SrcData $VarContext
 
-    If ($actionName -eq "ADD") {
-        if ($VarType -eq 'ENV') {
-            if (($VarContext -eq 'Machine') -or ($VarContext -eq 'System')) { [System.Environment]::SetEnvironmentVariable($VarName, $VarValue, [System.EnvironmentVariableTarget]::Machine) }
-            if ($VarContext -eq 'User') { [System.Environment]::SetEnvironmentVariable($VarName, $VarValue, [System.EnvironmentVariableTarget]::User) }
-            if ($VarContext -eq 'Process') { [System.Environment]::SetEnvironmentVariable($VarName, $VarValue, [System.EnvironmentVariableTarget]::Process) }
-        } 
-        if ($VarType -eq 'LOC') {
-            Remove-Variable -Name $VarName -Scope "Global"
-            #$AppValue = Set-Env -varValue $AppValue
-            New-Variable -Name $VarName -Value $VarValue -Scope "Global"
-        }
-    } ElseIf ($actionName -eq "REMOVE") {   
-        if ($VarType -eq 'ENV') {
-            if (($VarContext -eq 'Machine') -or ($VarContext -eq 'System')) { [System.Environment]::SetEnvironmentVariable($VarName, $null, [System.EnvironmentVariableTarget]::Machine) }
-            if ($VarContext -eq 'User') { [System.Environment]::SetEnvironmentVariable($VarName, $null, [System.EnvironmentVariableTarget]::User) }
-            if ($VarContext -eq 'Process') { [System.Environment]::SetEnvironmentVariable($VarName, $null, [System.EnvironmentVariableTarget]::Process) }
-        } 
-        if ($VarType -eq 'LOC') { Remove-Variable -Name $VarName -Scope "Global" }
+  $x = 0
+
+  foreach ($Name in $VarNames) {
+    if ((-not(Test-forVariable -varName $VarValue)) -and ($actionDate.$name.action.ToUpper() -eq "ADD")) {
+      if ((Test-forArrays -arr1 $VarNames -arr2 $VarValues) -eq $True) {
+        $Value = $VarValues[$x]
+      } else { 
+        Write-Log -Message "Script failed, diffrent number of parameteres between VarNames and VarValues $($MyInvocation.MyCommand)" -Severity 3 -Source $deployAppScriptFriendlyName
+        Exit-Script -ExitCode $Global:RCMissingParameter
+      }
     } 
 
+    if ($VarType.ToUpper() -eq 'ENV') {
+      if ((Test-forArrays -arr1 $VarNames -arr2 $VarContext) -eq $True) { $Context = $VarContexts[$x] }
+      else { $Context = $VarContext }
+    } 
 
-    
+    if ($actionDate.$name.action.ToUpper() -eq "ADD") {
+      if ($VarType.ToUpper() -eq 'ENV') {
+        Write-Log -Message "Adding System variable: $Name => $Value in $Context context." -Source $deployAppScriptFriendlyName
+        if (($Context.ToUpper() -eq 'MACHINE') -or ($Context -eq 'System')) { [System.Environment]::SetEnvironmentVariable($Name, $Value, [System.EnvironmentVariableTarget]::Machine) }
+        if ($Context.ToUpper() -eq 'USER') { [System.Environment]::SetEnvironmentVariable($Name, $Value, [System.EnvironmentVariableTarget]::User) }
+        if ($Context.ToUpper() -eq 'PROCESS') { [System.Environment]::SetEnvironmentVariable($Name, $Value, [System.EnvironmentVariableTarget]::Process) }
+      } elseif ($VarType.ToUpper() -eq 'LOC') {
+        Write-Log -Message "Adding Script variable: $Name => $Value." -Source $deployAppScriptFriendlyName
+        Remove-Variable -Name $Name -Scope "Global"
+        New-Variable -Name $Name -Value $Value -Scope "Global"
+      }
+    } elseIf ($actionDate.$name.action.ToUpper() -eq "REMOVE") {   
+      if ($VarType.ToUpper() -eq 'ENV') {
+        Write-Log -Message "Removing System variable: $Name in $Context context." -Source $deployAppScriptFriendlyName
+        if (($Context.ToUpper() -eq 'MACHINE') -or ($Context -eq 'System')) { [System.Environment]::SetEnvironmentVariable($Name, $null, [System.EnvironmentVariableTarget]::Machine) }
+        if ($Context.ToUpper() -eq 'USER') { [System.Environment]::SetEnvironmentVariable($Name, $null, [System.EnvironmentVariableTarget]::User) }
+        if ($Context.ToUpper() -eq 'PROCESS') { [System.Environment]::SetEnvironmentVariable($Name, $null, [System.EnvironmentVariableTarget]::Process) }
+      } elseif ($VarType.ToUpper() -eq 'LOC') { 
+        Write-Log -Message "Removing Script variable: $Name." -Source $deployAppScriptFriendlyName
+        Remove-Variable -Name $Name -Scope "Global" }
+    } 
+    $x++
+  }
 
-    #INSTALL,ADD,SVAR,Name=Value
-    #UNINSTALL,REMOVE,SVAR,Name
-
-    $VarValue = $Data[0]
-
-    If ($actionName -eq "ADD") {
-        $VarTmp = $VarValue.Split('=')
-        $VarName = $VarTmp[0]
-        $VarValue = $VarValue.Replace("$VarName=","")
-
-        Remove-Variable -Name $VarName -Scope "Global"
-        #$AppValue = Set-Env -varValue $AppValue
-        Write-Log -Message "===================================="
-        Write-Log -Message "Adding VAR: $VarName => $VarValue"
-        Write-Log -Message "===================================="
-        New-Variable -Name $VarName -Value $VarValue -Scope "Global"
-    } ElseIf ($actionName -eq "REMOVE") { Remove-Variable -Name $VarValue -Scope "Global" } 
-
+  Write-Log -Message "Ending: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
