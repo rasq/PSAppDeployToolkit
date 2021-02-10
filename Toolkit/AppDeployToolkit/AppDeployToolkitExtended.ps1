@@ -40,37 +40,36 @@ Function Set-YAMLActions {
 
     if ($name -like "msi_*") { Set-MSI -actionDate $actionDate -name $name }                            #Basic tests: ok.
     if ($name -like "directory_*") { Set-Directory -actionDate $actionDate -name $name }                #Basic tests: ok.
-    if ($name -like "script_*") { Set-Script -actionDate $actionDate -name $name }                      #Basic tests: ok. 
-    if ($name -like "sleep_*") { Set-Sleep -actionDate $actionDate -name $name }                        #Basic tests: ok. 
+    if ($name -like "script_*") { Set-Script -actionDate $actionDate -name $name }                      #Basic tests: ok.
+    if ($name -like "sleep_*") { Set-Sleep -actionDate $actionDate -name $name }                        #Basic tests: ok.
     if ($name -like "archive_*") { Set-Archive -actionDate $actionDate -name $name }                    #Basic tests: ok. 
-    if ($name -like "file_*") { Set-File -actionDate $actionDate -name $name }                          #Basic tests: ok. Need to add: move, add, edit, check
+    if ($name -like "dll_*") { Set-DLL -actionDate $actionDate -name $name }                            #Basic tests: ok.
+    if ($name -like "winfeature_*") { Set-WinFeature -actionDate $actionDate -name $name }              #Basic tests: ok.
+    if ($name -like "file_*") { Set-File -actionDate $actionDate -name $name }                          #Basic tests: ok. Need to add: move, add, edit, check.
     if ($name -like "msix_*") { Set-MSIX -actionDate $actionDate -name $name }                          #to test, basic logic was done.
-    if ($name -like "exe_*") { Set-EXE -actionDate $actionDate -name $name }                            #to test, basic logic was done. Need to add version check
+    if ($name -like "exe_*") { Set-EXE -actionDate $actionDate -name $name }                            #to test, basic logic was done. Need to add version check.
     if ($name -like "appv_*") { Set-APPV -actionDate $actionDate -name $name }                          #to test, basic logic was done.
     if ($name -like "service_*") { Set-Services -actionDate $actionDate -name $name }                   #to test, basic logic was done.
     if ($name -like "registry_*") { Set-Registry -actionDate $actionDate -name $name }                  #to test, basic logic was done.
-    if ($name -like "process_*") { Set-Process -actionDate $actionDate -name $name }                    #to test, basic logic was done. Only kill addedd
-    if ($name -like "winfeature_*") { Set-WinFeature -actionDate $actionDate -name $name }              #to test, basic logic was done.
-    if ($name -like "systemsettings_*") { Set-SysSettings -actionDate $actionDate -name $name }         #to test, basic logic was done. Need to change internal functions handling
-    if ($name -like "dll_*") { Set-DLL -actionDate $actionDate -name $name }                            #to test, basic logic was done.
+    if ($name -like "process_*") { Set-Process -actionDate $actionDate -name $name }                    #to test, basic logic was done. Only kill addedd.
+    if ($name -like "systemsettings_*") { Set-SysSettings -actionDate $actionDate -name $name }         #to test, basic logic was done. Need to change internal functions handling.
     if ($name -like "unblockfiles_*") { Set-UnblockFiles -actionDate $actionDate -name $name }          #to test, basic logic was done.
-    if ($name -like "scheduledtask_*") { Set-ScheduledTask -actionDate $actionDate -name $name }        #to test, basic logic was done. Need to add: new, set
+    if ($name -like "scheduledtask_*") { Set-ScheduledTask -actionDate $actionDate -name $name }        #to test, basic logic was done. Need to add: new, set.
     if ($name -like "detectionmethod_*") { Set-DetectionMethod -actionDate $actionDate -name $name }    #to test, basic logic was done.
     if ($name -like "pins_*") { Set-Pin -actionDate $actionDate -name $name }                           #to test, basic logic was done.
-    if ($name -like "shortcut_*") { Set-Shortcut -actionDate $actionDate -name $name }                  #started but need to be done from sratch
-    if ($name -like "if_*") { Set-ifStatement -actionDate $actionDate -name $name }
-    if ($name -like "appvCG_*") { Set-APPVCG -actionDate $actionDate -name $name }
-    <# 
-    if ($Name -eq "GETREG") { $RC = Get-Registry -actionName $Action -Data $Data } 
-    if ($Name -eq "MSIVersion") { $RC = Get-MSIVersion -actionName $Action -Data $Data } 
-    if ($Name -eq "DisplayWindow") { $RC = Set-DisplayWindow -actionName $Action -Data $Data } 
-    if ($Name -eq "TAG") { $RC = Set-Tag -actionName $Action -Data $Data }
-    if ($Name -eq "AS") { $RC = Set-ActiveSetupVal -actionName $Action -Data $Data }
-    if ($Name -eq "VAR") { $RC = Set-Vars -actionName $Action -Data $Data }
-    if ($Name -eq "SVAR") { $RC = Set-ScriptVars -actionName $Action -Data $Data }
-    if ($Name -eq "PERMISSIONS") { $RC = Set-Permissions -actionName $Action -Data $Data }
-    if ($Name -eq "OFFICE") { $RC = Set-Office -actionName $Action -Data $Data -DataType $DataType }
-    #>
+    if ($name -like "office_*") { Set-MSOffice -actionDate $actionDate -name $name }                    #to test, basic logic was done.
+    if ($name -like "activesetup_*") { Set-ActiveSetups -actionDate $actionDate -name $name }           #to test, basic logic was done.
+    if ($name -like "permissions_*") { Set-Permissions -actionDate $actionDate -name $name }            #to test, basic logic was done.
+    if ($name -like "variable_*") { Set-VARs -actionDate $actionDate -name $name }                      #todo (os vars and script vars) !!!!!!
+    if ($name -like "shortcut_*") { Set-Shortcut -actionDate $actionDate -name $name }                  #started but need to be done from sratch.
+    if ($name -like "if_*") { Set-ifStatement -actionDate $actionDate -name $name }                     #todo
+    if ($name -like "appvCG_*") { Set-APPVCG -actionDate $actionDate -name $name }                      #todo
+    if ($name -like "tag_*") { Set-TAG -actionDate $actionDate -name $name }                            #todo
+    if ($name -like "window_*") { Set-Window -actionDate $actionDate -name $name }                      #todo
+      <# 
+      if ($Name -eq "GETREG") { $RC = Get-Registry -actionName $Action -Data $Data } 
+      if ($Name -eq "MSIVersion") { $RC = Get-MSIVersion -actionName $Action -Data $Data } 
+      #>
     }
   } 
 
@@ -135,11 +134,12 @@ Function Set-MSI {
     if (($msifiles.Length -gt 0) -and ($msifiles[0] -ne "") -and ($null -ne $msifiles[0])) { 
       $x = 0
       foreach($msi in $msifiles) { 
-        if (-not($msi -like "*.msi")) { $msi = "$msi.msi" }
+        $msi = Set-FileExtension -file $msi -extension ".msi"
+
         Test-ifParamFileExist -path $msi
         if ($msifiles.Length -eq $mstFile.Length) { 
           $mst = $mstFiles[$x]
-          if (-not($mst -like "*.mst")) { $mst = "$mst.mst" }
+          $mst = Set-FileExtension -file $mst -extension ".mst"
           Test-ifParamFileExist -path $mst
           $CurrentMSIGUID = Get-MsiTableProperty -Path "$msi" -TransformPath "$($mst)" -Table 'Property' | Select-Object -ExpandProperty 'ProductCode' 
         } else { $CurrentMSIGUID = Get-MsiTableProperty -Path "$msi" -Table 'Property' | Select-Object -ExpandProperty 'ProductCode' }
@@ -158,7 +158,7 @@ Function Set-MSI {
   
         if ($msifiles.Length -eq $mstFile.Length) {
           $mst = $mstFiles[$x]
-          if (-not($mst -like "*.mst")) { $mst = "$mst.mst" }
+          $mst = Set-FileExtension -file $mst -extension ".mst"
           if ($msifiles.Length -eq $allParams.Length) { Execute-MSI -Action 'Install' "$msi" -Transform "$($mst)" <#-LogNameV "$logTagName" #>-AddParameters "$($allParams[$x])" }
           else { Execute-MSI -Action 'Install' "$msi" -Transform "$($mst)" <#-LogNameV "$logTagName"#> }
         } else { 
@@ -168,7 +168,7 @@ Function Set-MSI {
         
         if ($msifiles.Length -eq $mspFiles.Length) { 
           $msp = $mspFiles[$x]
-          if (-not($msp -like "*.mst")) { $msp = "$msp.msp" }
+          $msp = Set-FileExtension -file $msp -extension ".msp"
           Test-ifParamFileExist -path $msp
           Execute-MSP -Path "$($msp)" 
         }
@@ -178,7 +178,7 @@ Function Set-MSI {
       }
     } elseif (($mspFiles.Length -gt 0) -and ($mspFiles[0] -ne "") -and ($null -ne $mspFiles[0])) { 
       foreach($msp in $mspFiles) { 
-        if (-not($msp -like "*.mst")) { $msp = "$msp.msp" }
+        $msp = Set-FileExtension -file $msp -extension ".msp"
         Test-ifParamFileExist -path $msp
         Execute-MSP -Path "$msp" 
       }
@@ -249,8 +249,11 @@ Function Set-DLL {
     $name
   )
 
+  Write-Log -Message "Starting: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
+
   $DllFile = $actionDate.$name.dllFile
   $DllPath = $actionDate.$name.dllPath
+  $x = 0
 
 
   if (!(Test-forVariable -varName $DllFile)) {
@@ -258,14 +261,20 @@ Function Set-DLL {
     $DllFiles = Get-MultiData -SrcData $DllFile
     $rootDllPath = ""
 
-    if (($DllPaths.Length -eq 1) -and ($DllPaths[0] -ne '') -and (-not ([string]::IsNullOrEmpty($DllPaths[0])))) { $rootDllPath = $DllPaths[0] }
+    #if (($DllPaths.Length -eq 1) -and ($DllPaths[0] -ne '') -and (-not ([string]::IsNullOrEmpty($DllPaths[0])))) { $rootDllPath = $DllPaths[0] }
     
     foreach ($dll in $DllFiles) {
+      if (Test-forVariable -varName $DllPath) { $rootDllPath = $SourcePath }
+      elseif ((Test-forArrays -arr1 $DllPaths -arr2 $DllFiles) -eq $True) { $rootDllPath = $DllPaths[$x] }
+      else { $rootDllPath = $DllPath }
+
+      $rootDllPath = Set-FullStringsFromVars -VarToCheck $rootDllPath
+      $rootDllPath = Set-RelativePath -path $rootDllPath
+      $DllFile = Set-FileExtension -file $DllFile -extension ".dll"
+
       if ($rootDllPath -ne "") { $dllFullPath = "$rootDllPath\$DllFile" }
       elseif (($DllPaths[$x] -ne '') -and (-not ([string]::IsNullOrEmpty($DllPaths[$x])))) { $dllFullPath = "$($DllPaths[$x])\$DllFile" }
       Else { $dllFullPath = "$SourcePath\$DllFile" }
-
-      $dllFullPath = Set-FullStringsFromVars -VarToCheck $dllFullPath
 
       if ($actionDate.$name.action.ToUpper() -eq "REMOVE") { 
         Test-ifParamFileExist -path $dllFullPath
@@ -294,11 +303,14 @@ Function Set-DLL {
           Default { Write-Log -Message "Registration $dllFullPath status unknown."}
         }
       } 
+      $x++
     }
   } else {
     Write-Log -Message "Script failed, missing DllFile parameter in $($MyInvocation.MyCommand)" -Severity 3 -Source $deployAppScriptFriendlyName
     Exit-Script -ExitCode $Global:RCMissingParameter
   }  
+
+  Write-Log -Message "Ending: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -381,7 +393,6 @@ Function Set-Archive {
           $TargetDir = "$TargetDir\$ArchName"
         }
         
-
         if ($ArchType -eq "7Z") { 
           Test-ifParamFileExist -path "$archFullPath.7z"
           Write-Log -Message "ExtractToDirectory($archFullPath.7z, $TargetDir)"
@@ -757,8 +768,7 @@ Function Set-Registry {
   if ($Key.ToUpper() -like "*.REG") {
     if ($actionDate.$name.action.ToUpper() -eq "ADD") {
       foreach ($reg in $Keys) {
-        if (-not($reg -like "*:\*")) { $keyPath = "$SourcePath\$reg" }
-        else { $keyPath = "$reg" }
+        $keyPath = Set-RelativePath -path $reg
         Test-ifParamFileExist -path $keyPath
 
         $startprocessParams = @{
@@ -1439,15 +1449,9 @@ file_:
         Write-Log -Message "Will copy $Directory\$FileName to $TargetDirectory."
 
         ForEach ($User In (Get-WmiObject Win32_UserProfile -F "Special != True" | Select-Object -Expand LocalPath)) {
-          if (-not ($Directory -like "*:\*")) { 
-            Write-Log -Message "\User\Directory - $($User)$Directory"
-            $DirectoryUser = "$User$Directory"
-          } else { $DirectoryUser = $Directory }
-
-          if (-not ($TargetDirectory -like "*:\*")) { 
-            Write-Log -Message "\User\TargetDirectory - $($User)$TargetDirectory"
-            $TargetDirectoryU = "$User$TargetDirectory"
-          } else { $TargetDirectoryU = $TargetDirectory }
+          
+          $DirectoryUser = Set-RelativePath -path $Directory -prePath $User
+          $TargetDirectoryU = Set-RelativePath -path $TargetDirectory -prePath $User
 
           if ($FileName -eq "*") {
             Set-NewDirectory -path $TargetDirectory -force $True
@@ -1504,10 +1508,7 @@ file_:
 
       if ($forAllUsers -eq $True) {
         ForEach ($User In (Get-WmiObject Win32_UserProfile -F "Special != True" | Select-Object -Expand LocalPath)) {
-          if (-not ($Directory -like "*:\*")) { 
-            $DirectoryUser = "$User$Directory"
-            Write-Log -Message "\User\Directory - $DirectoryUser"
-          } else { $DirectoryUser = $Directory }
+          $DirectoryUser = Set-RelativePath -path $Directory -prePath $User
            
           if ($FileName.Contains("*")) { 
             Write-Log -Message "Remove all files includes $FileName in $DirectoryUser"
@@ -1887,8 +1888,7 @@ Function Set-APPV {
   
     foreach ($appv in $AppVFiles) {
       if (($AppVFiles.Length -eq $Contexts.Length) -and ($AppVFiles.Length -eq $LogTypes.Length) -and ($AppVFiles.Length -eq $AppVPKGNames.Length)) {
-        if ($appv -like "*.appv") { $appv = $appv }
-        else { $appv = "$appv.appv" }
+        $appv = Set-FileExtension -file $appv -extension ".appv"
         
         $appv = Set-FullStringsFromVars -VarToCheck $appv
         if (($appv -like "\*") -or (((-not ($appv -like "*:\*")) -and (-not ($appv -like "*%*"))))) { $appv = "$SourcePath\$appv"}  
@@ -1908,6 +1908,159 @@ Function Set-APPV {
 
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-ActiveSetups {
+  param(
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
+  )
+
+  #INSTALL,ADD,AS,C:\Users\Public\Company\ProgramUserConfig.vbs=/Silent=Program User Config=ProgramUserConfig,null
+  #UNINSTALL,ADD,AS,$envWinDir\regedit.exe=/S `"%SystemDrive%\Program Files (x86)\PS App Deploy\PSAppDeployHKCUSettings.reg`"=PS App Deploy Config=PS_App_Deploy_Config,null
+  #UNINSTALL,REMOVE,AS,null=null=null={604F30E1-35F2-4E34-AA21-3E83CDE863E1};SAS_SASEnterpriseGuide,null
+
+  Write-Log -Message "Starting: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
+
+  $Executable = $actionDate.$name.executable
+  $Arguments = $actionDate.$name.parameters
+  $Description = $actionDate.$name.description
+  $Key =  = $actionDate.$name.keyName
+
+  $AS32B = "SOFTWARE\Wow6432Node\Microsoft\Active Setup\Installed Components\"
+  $AS64B = "SOFTWARE\Microsoft\Active Setup\Installed Components\"
+  
+  if ($actionDate.$name.action.ToUpper() -eq "ADD") {
+    Write-Log -Message "Will ADD Active Setup with: $Executable $Arguments." -Source $deployAppScriptFriendlyName
+    
+    $Executable = Set-FullStringsFromVars -VarToCheck $Executable
+    $Arguments = Set-FullStringsFromVars -VarToCheck $Arguments
+    if (Test-forVariable -varName $Arguments) { $Arguments = "" }
+    Set-ActiveSetup -StubExePath $Executable -Arguments $Arguments -Description $Description -Key $Key -Version $(get-date -f ddyHHmmss)
+  } elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
+    $Keys = Get-MultiData -SrcData $Key
+    foreach ($KeyVar in $Keys) {
+      Write-Log -Message "Will REMOVE Active Setup: $KeyVar." -Source $deployAppScriptFriendlyName
+      if ($KeyVar -match "\*") { 
+        $KeyVar = $KeyVar.replace("*","")
+        Write-Log -Message "Active Setup key to remove: $KeyVar."
+
+        $Regs = Get-Item "HKLM:\$AS32B$KeyVar*"
+        foreach($Reg in $Regs) { Write-Log -Message "Remove $Reg "; Remove-RegistryKey -Key $Reg }
+
+        $Regs = Get-Item "HKLM:\$AS64B$KeyVar*"
+        foreach($Reg in $Regs) { Write-Log -Message "Remove $Reg "; Remove-RegistryKey -Key $Reg }
+      } else { Set-ActiveSetup -Key $KeyVar -PurgeActiveSetupKey; Remove-RegistryKey -Key "HKEY_LOCAL_MACHINE\$AS32B\$KeyVar" }
+    }
+  }  
+  Write-Log -Message "Ending: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-Permissions {
+  param(
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
+  )
+
+  Write-Log -Message "Starting: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
+
+  $path = $actionDate.$name.path
+  $owner = $actionDate.$name.owner #user
+  $accessType = $actionDate.$name.accessType #FullControl
+  $blockType = $actionDate.$name.blockType #Allow
+
+  $path = Set-FullStringsFromVars -VarToCheck $path
+  $path = Set-RelativePath -path $path
+
+  $CmdToRun = "icacls $path /reset /t /c"
+  $Result = Invoke-Expression -Command:$CmdToRun
+  if (($Result -eq "null") -or ([string]::IsNullOrEmpty($Result))) { Write-Log -Message "$Result" }
+
+  $acl = Get-Acl -Path "$path"
+  $acl.SetAccessRuleProtection($true,$false)
+  $acl.Access | ForEach-Object { $acl.RemoveAccessRule($_) | Out-Null }
+  $ace = New-Object System.Security.Accesscontrol.FileSystemAccessRule ($owner, $accessType, "ContainerInherit,ObjectInherit", "InheritOnly", $blockType)
+  $acl.AddAccessRule($ace)
+
+  Set-Acl -Path "$path" -AclObject $acl
+
+  Write-Log -Message "Ending: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-VARs {
+  param(
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
+  )
+
+
+  
+
+    #INSTALL,ADD,VAR,type=name=value=context,null
+    #UNINSTALL,IF,VAR,2000,null
+    #System,User,Process
+
+    $VarType = $Data[0]
+    $VarName = $Data[1]
+    $VarValue = $Data[2]
+    $VarContext = $Data[3]
+
+    If ($actionName -eq "ADD") {
+        if ($VarType -eq 'ENV') {
+            if (($VarContext -eq 'Machine') -or ($VarContext -eq 'System')) { [System.Environment]::SetEnvironmentVariable($VarName, $VarValue, [System.EnvironmentVariableTarget]::Machine) }
+            if ($VarContext -eq 'User') { [System.Environment]::SetEnvironmentVariable($VarName, $VarValue, [System.EnvironmentVariableTarget]::User) }
+            if ($VarContext -eq 'Process') { [System.Environment]::SetEnvironmentVariable($VarName, $VarValue, [System.EnvironmentVariableTarget]::Process) }
+        } 
+        if ($VarType -eq 'LOC') {
+            Remove-Variable -Name $VarName -Scope "Global"
+            #$AppValue = Set-Env -varValue $AppValue
+            New-Variable -Name $VarName -Value $VarValue -Scope "Global"
+        }
+    } ElseIf ($actionName -eq "REMOVE") {   
+        if ($VarType -eq 'ENV') {
+            if (($VarContext -eq 'Machine') -or ($VarContext -eq 'System')) { [System.Environment]::SetEnvironmentVariable($VarName, $null, [System.EnvironmentVariableTarget]::Machine) }
+            if ($VarContext -eq 'User') { [System.Environment]::SetEnvironmentVariable($VarName, $null, [System.EnvironmentVariableTarget]::User) }
+            if ($VarContext -eq 'Process') { [System.Environment]::SetEnvironmentVariable($VarName, $null, [System.EnvironmentVariableTarget]::Process) }
+        } 
+        if ($VarType -eq 'LOC') { Remove-Variable -Name $VarName -Scope "Global" }
+    } 
+
+
+    
+
+    #INSTALL,ADD,SVAR,Name=Value
+    #UNINSTALL,REMOVE,SVAR,Name
+
+    $VarValue = $Data[0]
+
+    If ($actionName -eq "ADD") {
+        $VarTmp = $VarValue.Split('=')
+        $VarName = $VarTmp[0]
+        $VarValue = $VarValue.Replace("$VarName=","")
+
+        Remove-Variable -Name $VarName -Scope "Global"
+        #$AppValue = Set-Env -varValue $AppValue
+        Write-Log -Message "===================================="
+        Write-Log -Message "Adding VAR: $VarName => $VarValue"
+        Write-Log -Message "===================================="
+        New-Variable -Name $VarName -Value $VarValue -Scope "Global"
+    } ElseIf ($actionName -eq "REMOVE") { Remove-Variable -Name $VarValue -Scope "Global" } 
+
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function Set-Tags {
   param(
     [Parameter(Mandatory = $True)]
@@ -1918,6 +2071,97 @@ Function Set-Tags {
     $Action = "ADD"
   )
 
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-MSOffice {
+  param(
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name,
+    [Parameter(Mandatory = $False)]
+    $Action = "ADD"
+  )
+
+    #PREINSTALL,ADD,OFFICE,EXEPath=xmlPath=PkgName,null
+    #PREINSTALL,REMOVE,OFFICE,PkgGUID=LangCode=FamiliVer=PkgName,null
+    #PREINSTALL,CHANGE,OFFICE,Module,null
+  Write-Log -Message "Starting: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
+
+  $officeToClick = "Common Files\Microsoft Shared\ClickToRun\OfficeClickToRun.exe" 
+  $procList = @("PROFLWIZ","communicator","GroupChatConsole","AttendantConsole","DW20","LYNC","ONEDRIVE","GROOVE","MSPSCAN","MSPVIEW","OFFDIAG","EXCEL","INFOPATH","MSACCESS","MSOSYNC","MSOUC","MSPUB","MSTORE","MSTORDB","MSTRDB","OIS","ONENOTE","ONENOTEM","OUTLOOK","POWERPNT","SELFCERT","SETLANG","WINWORD","DATABASECOMPARE","SPREADSHEETCOMPARE","OCPUBMGR","VISIO","WINPROJ","SPDESIGN")
+  $products = @("VisioProRetail","O365ProPlusRetail")
+  $EXEOTCFile = "$env:programfiles\$officeToClick"
+
+  $PkgGUID = $actionDate.$name.GUID
+  $LangCode = $actionDate.$name.langugeCode
+  $FamVer = $actionDate.$name.version
+  $PKGName = $actionDate.$name.pkgName
+  $isKillProcess = $actionDate.$name.killProcesses
+  $Module = $actionDate.$name.module
+  $EXEFile = $actionDate.$name.exeFile
+  $XMLFile = $actionDate.$name.xmlFile
+
+  if ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
+    Write-Log -Message "Will uninstall MS Office."
+    Write-Log -Message "MS Office processes wil be check and killed: $isKillProcess."
+    
+    if ($isKillProcess.ToLower() -eq "true") { Set-KillProcesses -procList $procList }
+
+    $regGUID = Get-InstalledApplication -ProductCode $PkgGUID	
+
+    if (-not(Test-forVariable -varName $regGUID)) { 
+      Write-Log -Message "Office $regGUID is installed, going to uninstall."
+      
+      foreach($product in $products) {
+        if($PkgGUID -like "$product*") { $Params = "scenario=install scenariosubtype=ARP sourcetype=None productstoremove=$product."+$FamVer+"_"+$LangCode+"_x-none culture="+$LangCode+" version."+$FamVer+"="+$FamVer+".0 DisplayLevel=false" }
+        Test-ifParamFileExist -path $EXEOTCFile
+        Execute-Process -Path $EXEOTCFile -Parameters $Params -WindowStyle 'Hidden'
+      }   
+    } else { Write-Log -Message "Office $regGUID is not installed, going to next step." }
+  } elseIf ($actionDate.$name.action.ToUpper() -eq "ADD") {
+    Write-Log -Message "Will install MS Office."
+    $EXEFile = Set-FullStringsFromVars -VarToCheck $EXEFile
+    $EXEFile = Set-RelativePath -path $EXEFile
+    $XMLFile = Set-FullStringsFromVars -VarToCheck $XMLFile
+    $XMLFile = Set-RelativePath -path $XMLFile -prePath $ConfigFilesPath
+
+    Set-FileExtension -file $EXEFile -extension ".exe"
+    Set-FileExtension -file $XMLFile -extension ".xml"
+    Test-ifParamFileExist -path $EXEFile
+    Test-ifParamFileExist -path $XMLFile
+
+    $Params = "/configure "+'"'+$XMLFile+'"'
+
+    Execute-Process -Path "$EXEFile" -Parameters $Params -WindowStyle 'Hidden'
+  } elseIf ($actionDate.$name.action.ToUpper() -eq "CHANGE") {
+    if ($Module.ToLower() -eq "teams") {
+      Write-Log -Message "Will uninstall MS Teams."
+      if (Test-forVariable -varName $PkgGUID) { $PkgGUID = "{39AF0813-FA7B-4860-ADBE-93B9B214B914}" }
+      Get-WmiObject -Class Win32_Product | Where-Object {$_.IdentifyingNumber -eq $PkgGUID} | Remove-WmiObject
+      $TeamsPath = "AppData\Local\Microsoft\Teams"
+      $TeamsUsers = Get-ChildItem -Path "$ENV:SystemDrive\Users"
+      $TeamsUsers | ForEach-Object {
+        Try {
+          if ( Test-Path -Path "$ENV:SystemDrive\Users\$($_.Name)\$TeamsPath" -PathType Container ) { $Item = "$ENV:SystemDrive\Users\$($_.Name)\$TeamsPath" }
+          else { $Item = "$ENV:SystemDrive\Users\$($_.Name)\$TeamsPath" }
+          Write-Log -Message $item
+          if (Test-Path $Item) { 
+            Start-Process -FilePath "$Item\Update.exe" -ArgumentList "-uninstall -s"
+            Remove-Item -Path $Item -Recurse -Force -ErrorAction Ignore 
+          }
+        } Catch { Out-Null }
+      }
+    }
+  } else {
+    Write-Log -Message "Will Exit Script - ExitCodeVarName = $ExitCodeVarName."
+    Exit-Script -ExitCode $intNum 
+  }
+
+  Write-Log -Message "Ending: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2177,6 +2421,64 @@ Function Set-TrimLastChar {
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-RelativePath {
+	param( 
+    [Parameter(Mandatory = $true)]
+    $path,
+    $prePath = $SourcePath
+	)
+
+  Write-Log -Message "Will check if $path is an relative path."
+
+  if (-not($path -like "*:\*")) { $RC = "$prePath\$path" }
+  else { $RC = "$path" }
+
+  Write-Log -Message "Returning path: $RC."
+
+  Return $RC
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-FileExtension {
+	param( 
+    [Parameter(Mandatory = $true)]
+    $file,
+    [Parameter(Mandatory = $true)]
+    $extension
+	)
+
+  Write-Log -Message "Will check if $file have extension: $extension."
+
+  if ($file.ToLower() -like "*$extension") { $file = $file }
+  else { $file = "$file$extension" }
+
+  Write-Log -Message "Returning file: $RC."
+
+  Return $RC
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-KillProcesses {
+	param( 
+    [Parameter(Mandatory = $true)]
+    $procList
+	)
+
+  Write-Log -Message "Processes will be checked and killed."
+  foreach ($process in $procList) { 
+    Stop-process -name $process -force -ErrorAction SilentlyContinue
+    Write-Log -Message "Stopping: $process." 
+  }
+  Write-Log -Message "All processes handled."
+
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  
 
 
 
