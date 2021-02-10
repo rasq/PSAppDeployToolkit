@@ -40,7 +40,9 @@ Function Set-YAMLActions {
 
     if ($name -like "msi_*") { Set-MSI -actionDate $actionDate -name $name }                            #Basic tests: ok.
     if ($name -like "directory_*") { Set-Directory -actionDate $actionDate -name $name }                #Basic tests: ok.
-    if ($name -like "script_*") { Set-Script -actionDate $actionDate -name $name }                      #to test, basic logic was done.
+    if ($name -like "script_*") { Set-Script -actionDate $actionDate -name $name }                      #Basic tests: ok. 
+    if ($name -like "sleep_*") { Set-Sleep -actionDate $actionDate -name $name }                        #Basic tests: ok. 
+    if ($name -like "archive_*") { Set-Archive -actionDate $actionDate -name $name }                    #Basic tests: ok. 
     if ($name -like "file_*") { Set-File -actionDate $actionDate -name $name }                          #Basic tests: ok. Need to add: move, add, edit, check
     if ($name -like "msix_*") { Set-MSIX -actionDate $actionDate -name $name }                          #to test, basic logic was done.
     if ($name -like "exe_*") { Set-EXE -actionDate $actionDate -name $name }                            #to test, basic logic was done. Need to add version check
@@ -48,8 +50,6 @@ Function Set-YAMLActions {
     if ($name -like "service_*") { Set-Services -actionDate $actionDate -name $name }                   #to test, basic logic was done.
     if ($name -like "registry_*") { Set-Registry -actionDate $actionDate -name $name }                  #to test, basic logic was done.
     if ($name -like "process_*") { Set-Process -actionDate $actionDate -name $name }                    #to test, basic logic was done. Only kill addedd
-    if ($name -like "sleep_*") { Set-Sleep -actionDate $actionDate -name $name }                        #to test, basic logic was done.
-    if ($name -like "archive_*") { Set-Archive -actionDate $actionDate -name $name }                    #to test, basic logic was done.
     if ($name -like "winfeature_*") { Set-WinFeature -actionDate $actionDate -name $name }              #to test, basic logic was done.
     if ($name -like "systemsettings_*") { Set-SysSettings -actionDate $actionDate -name $name }         #to test, basic logic was done. Need to change internal functions handling
     if ($name -like "dll_*") { Set-DLL -actionDate $actionDate -name $name }                            #to test, basic logic was done.
@@ -312,11 +312,17 @@ Function Set-Archive {
     $name
   )
 
-  #TODO:
-  # - add 7zip and system zip archive and 7zip install dir detection
+  Write-Log -Message "Starting: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
 
-  $driveLetter = Split-Path -Path "$PSScriptRoot" -Qualifier
-  $discSpace = Get-DiscSpace -drive $driveLetter
+  $7zipDatasA = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -like "7-Zip*" }
+  $7zipDatasB = Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -like "7-Zip*" }
+
+  if (-not(Test-forVariable -varName $7zipDatasA)) { $7zipInstDir = $7zipDatasA.InstallLocation }
+  elseif (-not(Test-forVariable -varName $7zipDatasB)) { $7zipInstDir = $7zipDatasB.InstallLocation }
+  else { $7zipInstDir = "null" }
+
+  $drives = (Get-PSDrive -PSProvider FileSystem).Root
+  foreach ($drive in $drives) { $discSpace = Get-DiscSpace -drive $drive }
   
   Write-Log -Message "Current disc space: $discSpace" -Source $deployAppScriptFriendlyName
 
@@ -328,42 +334,78 @@ Function Set-Archive {
   $DirsPath = Get-MultiData -SrcData $DirPath
   $ArchsName = Get-MultiData -SrcData $ArchName
 
+  $x = 0
+
   if (!(Test-forVariable -varName $ArchName)) {
+    if ($ArchType -eq "7Z") { 
+      if ($7zipInstDir -eq "null") { 
+        Write-Log -Message "Script failed, missing 7zip prerequisite." -Severity 3 -Source $deployAppScriptFriendlyName
+        Exit-Script -ExitCode -100 
+      }
+    }
+
     if ($actionDate.$name.action.ToUpper() -eq "ADD") {
       foreach ($dir in $DirsPath) {
-        if ($DirsPath.Length -eq $ArchsName.Length) { $zipName = $ArchsName[$x] }
-        else { $zipName = "$($ArchsName[0])_$x" }
+        if ((Test-forArrays -arr1 $DirsPath -arr2 $ArchsName) -eq $True) { $zipName = $ArchsName[$x] }
+        else { $zipName = "$ArchName" }
 
-        if ($ArchType -eq "7Z") { }
-        elseif ($ArchType -eq "ZIP") {}
-        elseif ($ArchType -eq "PSZIP") { New-ZipFile -DestinationArchiveDirectoryPath "$TargetDir" -DestinationArchiveFileName "$zipName.zip" -SourceDirectory "$dir" -OverWriteArchive $True }
+        Set-NewDirectory -path $dir
+        $dir = Set-TrimLastChar -string $dir
+
+        if ($ArchType -eq "7Z") {
+          Test-ifParamFileExist -path "$7zipInstDir\7z.exe"
+          Write-Log -Message "$7zipInstDir\7z.exe a $zipName.7z $TargetDir." -Source $deployAppScriptFriendlyName
+          & "$7zipInstDir\7z.exe" a "$zipName.7z" "$TargetDir"  
+        } elseif ($ArchType -eq "ZIP") { 
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          Write-Log -Message "[System.IO.Compression.ZipFile]::CreateFromDirectory($TargetDir,$dir\$zipName.zip)" -Source $deployAppScriptFriendlyName
+          [System.IO.Compression.ZipFile]::CreateFromDirectory("$TargetDir" ,"$dir\$zipName.zip")
+        } elseif ($ArchType -eq "PSZIP") { 
+          Write-Log -Message "New-ZipFile -DestinationArchiveDirectoryPath $dir -DestinationArchiveFileName $zipName.zip -SourceDirectory $TargetDir -OverWriteArchive $True" -Source $deployAppScriptFriendlyName
+          New-ZipFile -DestinationArchiveDirectoryPath "$dir" -DestinationArchiveFileName "$zipName.zip" -SourceDirectory "$TargetDir" -OverWriteArchive $True 
+        }
+        $x++
       }
     } elseif ($actionDate.$name.action.ToUpper() -eq "UNPACK") {
       $TargetDir = Set-FullStringsFromVars -VarToCheck $TargetDir
 
-      foreach ($arch in $ArchsName) {
-        if ($DirsPath.Length -eq $ArchsName.Length) {
-          if (Test-forVariable -varName $DirsPath[$x]) { $Directory = $SourcePath  } 
-          else { $Directory = Set-FullStringsFromVars -VarToCheck $DirsPath[$x] }
-        } else { $Directory = $SourcePath }
-
-        $archFullPath = "$Directory\$arch"
-        Test-ParamFile -path $archFullPath
-        Write-Log -Message "ExtractToDirectory($archFullPath, $TargetDir)"
+      foreach ($dir in $DirsPath) {
+        if ((Test-forArrays -arr1 $DirsPath -arr2 $ArchsName) -eq $True) {
+          if (Test-forVariable -varName $dir) { $Directory = $SourcePath  } 
+          else { $Directory = Set-FullStringsFromVars -VarToCheck $dir }
+          $archFullPath = "$Directory\$($ArchsName[$x])"
+          $TargetDir = "$TargetDir\$($ArchsName[$x])"
+        } else { 
+          $Directory = $dir 
+          $archFullPath = "$Directory\$ArchName"
+          $TargetDir = "$TargetDir\$ArchName"
+        }
+        
 
         if ($ArchType -eq "7Z") { 
-          Test-ParamFile -path "C:\Program Files\7-Zip\7z.exe"
-          & "C:\Program Files\7-Zip\7z.exe" x "$archFullPath" -o"$TargetDir" -y  
+          Test-ifParamFileExist -path "$archFullPath.7z"
+          Write-Log -Message "ExtractToDirectory($archFullPath.7z, $TargetDir)"
+          Test-ifParamFileExist -path "$7zipInstDir\7z.exe"
+          & "$7zipInstDir\7z.exe" x "$archFullPath.7z" -o"$TargetDir" -y  
         } elseif ($ArchType -eq "ZIP") { 
+          Test-ifParamFileExist -path "$archFullPath.zip"
+          Write-Log -Message "ExtractToDirectory($archFullPath.zip, $TargetDir)"
           Add-Type -AssemblyName System.IO.Compression.FileSystem
-          [System.IO.Compression.ZipFile]::ExtractToDirectory("$archFullPath" ,"$TargetDir")
-        } elseif ($ArchType -eq "PSZIP") { Expand-Archive -LiteralPath $archFullPath -DestinationPath "$TargetDir" -Force }
+          [System.IO.Compression.ZipFile]::ExtractToDirectory("$archFullPath.zip" ,"$TargetDir")
+        } elseif ($ArchType -eq "PSZIP") { 
+          Test-ifParamFileExist -path "$archFullPath.zip"
+          Write-Log -Message "ExtractToDirectory($archFullPath.zip, $TargetDir)"
+          Expand-Archive -LiteralPath $archFullPath -DestinationPath "$TargetDir" -Force 
+        }
+        $x++
       }
     }  
   } else {
     Write-Log -Message "Script failed, missing ArchName parameter in $($MyInvocation.MyCommand)" -Severity 3 -Source $deployAppScriptFriendlyName
     Exit-Script -ExitCode $Global:RCMissingParameter
   }
+  
+  Write-Log -Message "Ending: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -623,7 +665,7 @@ Function Set-EXE {
       
     if ((($isInstalled -eq $false) -and ($action -eq "ADD")) -or (($isInstalled -eq $true) -and ($action -eq "REMOVE"))) { 
       $exe = "$exe" 
-      Test-ParamFile -path $exe
+      Test-ifParamFileExist -path $exe
       Write-Log -Message "Execute-Process -Path $exe -Parameters $CMDParam"
       Execute-Process -Path $exe -Parameters $CMDParam -WindowStyle 'Hidden' -IgnoreExitCodes $SuccessCode 
       if (Test-forVariable -varName $TAG) { Set-Tags -actionDate "$TAG" }
@@ -678,6 +720,8 @@ Function Set-Sleep {
     $name
   )
 
+  Write-Log -Message "Starting: $($MyInvocation.MyCommand)/$($actionDate.$name.time)." -Source $deployAppScriptFriendlyName
+
   $Time = $actionDate.$name.time
 
   Write-Log -Message "Starts sleep for $Time."
@@ -687,7 +731,8 @@ Function Set-Sleep {
     $Time = $Time.Replace("S","")
     Start-Sleep -Seconds $Time 
   } else { Start-Sleep -Milliseconds $Time } 
-  
+
+  Write-Log -Message "Ending: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -714,7 +759,7 @@ Function Set-Registry {
       foreach ($reg in $Keys) {
         if (-not($reg -like "*:\*")) { $keyPath = "$SourcePath\$reg" }
         else { $keyPath = "$reg" }
-        Test-ParamFile -path $keyPath
+        Test-ifParamFileExist -path $keyPath
 
         $startprocessParams = @{
             FilePath     = "$Env:SystemRoot\REGEDIT.exe"
@@ -1013,13 +1058,11 @@ directory_4:
 
       if ($forAllUsers -eq $True) {
         ForEach ($User In (Get-WmiObject Win32_UserProfile -F "Special != True" | Select-Object -Expand LocalPath)) {
-            Write-Log -Message "\User\dir - $($User)$dir"
-            $dirU = "$User$dir"
-            if (-not(Test-Path $dirU -PathType Container)) { New-Item -ItemType Directory -Path $dirU -Force:$localForce | Out-Null }
+          Write-Log -Message "\User\dir - $($User)$dir"
+          $dirU = "$User$dir"
+          Set-NewDirectory -path $dirU -force $localForce
         }
-      } else { 
-        if (-not(Test-Path $dir -PathType Container)) { New-Item -ItemType Directory -Path $dir -Force:$localForce | Out-Null }
-      }
+      } else { Set-NewDirectory -path $dir -force $localForce }
       $x++
     }
   } elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
@@ -1119,7 +1162,7 @@ directory_4:
         ForEach ($User In (Get-WmiObject Win32_UserProfile -F "Special != True" | Select-Object -Expand LocalPath)) {
           Write-Log -Message "\User\NewDir - $($User)$NewDir"
           $UserDir = "$User$NewDir"
-          if ($OldDir -like "*\" ) { $OldDir = $OldDir.Substring(0,$OldDir.Length-1) }
+          $OldDir = Set-TrimLastChar -string $OldDir 
           Write-Log -Message "Xcopy /E /I /S /H /Y $OldDir $UserDir"
           Xcopy /E /I /S /H /Y $OldDir $UserDir
         }
@@ -1248,7 +1291,7 @@ Function Set-Script {
       if (Test-forArrays -arr1 $scriptNames -arr2 $scriptDirs) { $scriptDirectory = Set-FullStringsFromVars -VarToCheck $scriptDirs[$x] } 
       else { $scriptDirectory = Set-FullStringsFromVars -VarToCheck $scriptDir }
 
-      if (Test-forArrays -arr1 $scriptNames -arr2 $scriptParams) { $scriptParameter = Set-FullStringsFromVars -VarToCheck $scriptParams[$x] } 
+      if ((Test-forArrays -arr1 $scriptNames -arr2 $scriptParams) -eq $True) { $scriptParameter = Set-FullStringsFromVars -VarToCheck $scriptParams[$x] } 
       else { $scriptParameter = Set-FullStringsFromVars -VarToCheck $scriptParam }
 
       Write-Log -Message "Trying to start: $scriptDirectory\$script $scriptParameter"
@@ -1256,7 +1299,7 @@ Function Set-Script {
       if (Test-forVariable -varName $scriptDirectory) { $scriptPath = "$SourcePath\$script" } 
       else { $scriptPath = "$scriptDirectory\$script" }
   
-      Test-ParamFile -path "$scriptPath"
+      Test-ifParamFileExist -path "$scriptPath"
 
       if ($script.ToLower() -like "*.vbs") {
         if (Test-forVariable -varName $scriptParameter) { 
@@ -1390,7 +1433,7 @@ file_:
       $TargetDirectory = $NewDir
 
       if ($Directory -like "") { $Directory = $SourcePath }
-      if ($Directory -like "*\") { $Directory = $Directory.Substring(0,$Directory.Length-1) }
+      $Directory = Set-TrimLastChar -string $Directory
 
       if ($forAllUsers -eq $True) {
         Write-Log -Message "Will copy $Directory\$FileName to $TargetDirectory."
@@ -1407,14 +1450,14 @@ file_:
           } else { $TargetDirectoryU = $TargetDirectory }
 
           if ($FileName -eq "*") {
-            if(!(Test-Path -Path "$TargetDirectory")){ New-Item -ItemType directory -Path "$TargetDirectory" }
+            Set-NewDirectory -path $TargetDirectory -force $True
             Copy-Item -Path "$Directory\*" -Destination "$TargetDirectory" -Recurse -Force
           } else {
             $DestToUser = '"'+"$TargetDirectoryU\$FileName"+'"'
             $DirectoryU = '"'+"$DirectoryUser\$FileName"+'"'
 
             if (-not (Test-Path -Path $DestToUser)) {
-              if (-not (Test-Path -Path "$TargetDirectoryU" )) { New-Item "$TargetDirectoryU" -ItemType "directory" }
+              Set-NewDirectory -path $TargetDirectoryU -force $True
               Write-Log -Message "cmd /C copy /Y $DirectoryU $DestToUser"
               & cmd /C "copy /Y $DirectoryU $DestToUser"
             }
@@ -1425,8 +1468,8 @@ file_:
           if (Test-Path -Path $TargetDirectory) { Write-Log -Message "$TargetDirectory exists. Copying content of $Directory." } 
           else { New-Item -ItemType directory -Path "$TargetDirectory" }
 
-          if ($TargetDirectory -like "*\") { $TargetDirectory = $TargetDirectory.Substring(0,$TargetDirectory.Length-1) }
-          if ($Directory -like "*\") { $Directory = $Directory.Substring(0,$Directory.Length-1) }
+          $TargetDirectory = Set-TrimLastChar -string $TargetDirectory
+          $Directory = Set-TrimLastChar -string $Directory
 
           robocopy "$Directory" "$TargetDirectory" /Mir
 
@@ -1457,7 +1500,7 @@ file_:
       $Directory = $NewDir
 
       Write-Log -Message "Removing: $Directory\$FileName"
-      if ($Directory -like "*\") { $Directory = $Directory.Substring(0,$Directory.Length-1) }
+      $Directory = Set-TrimLastChar -string $Directory
 
       if ($forAllUsers -eq $True) {
         ForEach ($User In (Get-WmiObject Win32_UserProfile -F "Special != True" | Select-Object -Expand LocalPath)) {
@@ -1485,7 +1528,7 @@ file_:
       }
     }
   } elseif ($actionDate.$name.action.ToUpper() -eq "RENAME") {
-    if (Test-forArrays -arr1 $FileNames -arr2 $NewFileNames) {
+    if ((Test-forArrays -arr1 $FileNames -arr2 $NewFileNames) -eq $True) {
       foreach ($file in $FileNames) {
         $FileName = $file
         if ($NewFileNames -is [array]) { $NewFileName = $NewFileNames[$x] } else { $NewFileName = $NewFileName }
@@ -1742,7 +1785,7 @@ Function Set-DetectionMethod {
   if ($ExitScript -eq $True) { Write-Log -Message "Tests passed, going to next function, RC = 0." }
   else  {   
     Write-Log -Message "Will Exit Script - ExitCodeVarName = $ExitCodeVarName."
-    Set-Finalize -ExitCode $intNum 
+    Exit-Script -ExitCode $intNum 
   }
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1795,7 +1838,7 @@ Function Set-MSIX {
       elseif (Test-forVariable -varName $VolumeName) { Move-AppPackage -Package $name -Volume $VolumeName }
       else {  
         Write-Log -Message "Will Exit Script."
-        Set-Finalize -ExitCode $intNum  
+        Exit-Script -ExitCode $intNum  
       }
       $x++
     }  
@@ -1996,7 +2039,7 @@ Function Test-ifParamFileExist {
   if ((Test-Path -Path $path) -eq $True) { Write-Log -Message "Path: $path exist, going next."; Return $True }
   elseif (([System.IO.File]::Exists($path)) -eq $True) { Write-Log -Message "File: $path exist, going next."; Return $True }
   elseif ("null" -eq $path) { Write-Log -Message "Skipping param, is null."; Return $True }
-  else { Write-Log -Message "$path missing, exiting script with RC = -1."; Set-Finalize -ExitCode -1 }
+  else { Write-Log -Message "$path missing, exiting script with RC = -1."; Exit-Script -ExitCode -1 }
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2022,10 +2065,12 @@ Function Get-DiscSpace {
 		$drive="$Env:HOMEDRIVE"
 	)
 
+  Write-Log -Message "Testing free space for: $drive."
+
   $toGB =  (1024*1024*1024)
   $toMB =  (1024*1024)
 
-  $space = Get-PSDrive $drive | Select-Object Used,Free
+  $space = Get-PSDrive $drive[0] | Select-Object Used,Free
 
   $freeMB = $space.Free / $toMB
   $freeGB = $space.Free / $toGB
@@ -2069,8 +2114,20 @@ Function Test-forArrays {
     $arr2
   )
   
+  Write-Log -Message "Testing if arr1 and arr2 are arrays and if arr1.length is = arr2.length."
   $RC = $False
-  if ((($arr1 -is [array]) -and ($arr2 -is [array]) -and (($arr1.Length -eq $arr2.Length))) -or (!($arr1 -is [array]) -and !($arr2 -is [array]))) { $RC = $True }
+  if (((($arr1 -is [array]) -and ($arr2 -is [array])) -and ($arr1.Length -eq $arr2.Length)) -or ((!($arr1 -is [array])) -and (!($arr2 -is [array])))) { $RC = $True }
+
+  if($RC) { 
+    Write-Log -Message "arr1 and arr2 are equal." 
+  } else { 
+    Write-Log -Message "arr1 and arr2 are not equal arrays." 
+  }
+  
+  if (((!($arr1 -is [array])) -and (!($arr2 -is [array])))) { 
+    $RC = "STRING"
+    Write-Log -Message "arr1 and arr2 are not arrays." 
+  }
   
   Return $RC
 }
@@ -2086,5 +2143,41 @@ Function Set-CustomStandards {
   $Configs
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-NewDirectory {
+	param( 
+    [Parameter(Mandatory = $true)]
+		$path,
+    $force = $True
+	)
+
+  Write-Log -Message "Will check if $path exist and will create if not."
+  if (-not(Test-Path $path -PathType Container)) { New-Item -ItemType Directory -Path $path -Force:$force | Out-Null }
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-TrimLastChar {
+	param( 
+    [Parameter(Mandatory = $true)]
+		$string,
+    $char = "\"
+	)
+
+  Write-Log -Message "Will trim $char from $string."
+  if ($string -like "*$char") { $RC = $string.Substring(0,$string.Length-1) }
+  else { $RC = $string }
+  Write-Log -Message "Triming result: $RC."
+
+  Return $RC
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
 
 

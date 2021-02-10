@@ -30,6 +30,8 @@
     #  appVer: "2.2.14"
     #  msiFile: "vagrant_2.2.14_x86_64"
     #  GUID: "{CAAAA9DF-7CB4-4260-B6EB-2583F16DB67D}"
+    sleep_1:
+      time: "10s"
     directory_1:
       action: "ADD"
       targetDir: "%allusers%\\asd\\sad\\fdsfd"
