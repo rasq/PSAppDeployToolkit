@@ -33,46 +33,43 @@ Function Set-YAMLActions {
   
   if (($yamlData -ne "") -and ($yamlData -ne " ") -and ($null -ne $yamlData) -and ($empty -ne $yamlData)) {
     $yamlData.keys | ForEach-Object {
-    $name = $_
-    $actionDate = $yamlData
+      $name = $_
+      $actionDate = $yamlData
 
-    Write-Log -Message "Proceed with: $($name)." -Source $deployAppScriptFriendlyName
+      Write-Log -Message "Proceed with: $($name)." -Source $deployAppScriptFriendlyName
 
-    if ($name -like "msi_*") { Set-MSI -actionDate $actionDate -name $name }                            #Basic tests: ok.
-    if ($name -like "directory_*") { Set-Directory -actionDate $actionDate -name $name }                #Basic tests: ok.
-    if ($name -like "script_*") { Set-Script -actionDate $actionDate -name $name }                      #Basic tests: ok.
-    if ($name -like "sleep_*") { Set-Sleep -actionDate $actionDate -name $name }                        #Basic tests: ok.
-    if ($name -like "archive_*") { Set-Archive -actionDate $actionDate -name $name }                    #Basic tests: ok. 
-    if ($name -like "dll_*") { Set-DLL -actionDate $actionDate -name $name }                            #Basic tests: ok.
-    if ($name -like "winfeature_*") { Set-WinFeature -actionDate $actionDate -name $name }              #Basic tests: ok.
-    if ($name -like "file_*") { Set-File -actionDate $actionDate -name $name }                          #Basic tests: ok. Need to add: move, add, edit, check.
-    if ($name -like "msix_*") { Set-MSIX -actionDate $actionDate -name $name }                          #to test, basic logic was done.
-    if ($name -like "exe_*") { Set-EXE -actionDate $actionDate -name $name }                            #to test, basic logic was done. Need to add version check.
-    if ($name -like "appv_*") { Set-APPV -actionDate $actionDate -name $name }                          #to test, basic logic was done.
-    if ($name -like "service_*") { Set-Services -actionDate $actionDate -name $name }                   #to test, basic logic was done.
-    if ($name -like "registry_*") { Set-Registry -actionDate $actionDate -name $name }                  #to test, basic logic was done.
-    if ($name -like "process_*") { Set-Process -actionDate $actionDate -name $name }                    #to test, basic logic was done. Only kill addedd.
-    if ($name -like "systemsettings_*") { Set-SysSettings -actionDate $actionDate -name $name }         #to test, basic logic was done. Need to change internal functions handling.
-    if ($name -like "unblockfiles_*") { Set-UnblockFiles -actionDate $actionDate -name $name }          #to test, basic logic was done.
-    if ($name -like "scheduledtask_*") { Set-ScheduledTask -actionDate $actionDate -name $name }        #to test, basic logic was done. Need to add: new, set.
-    if ($name -like "detectionmethod_*") { Set-DetectionMethod -actionDate $actionDate -name $name }    #to test, basic logic was done.
-    if ($name -like "pins_*") { Set-Pin -actionDate $actionDate -name $name }                           #to test, basic logic was done.
-    if ($name -like "office_*") { Set-MSOffice -actionDate $actionDate -name $name }                    #to test, basic logic was done.
-    if ($name -like "activesetup_*") { Set-ActiveSetups -actionDate $actionDate -name $name }           #to test, basic logic was done.
-    if ($name -like "permissions_*") { Set-Permissions -actionDate $actionDate -name $name }            #to test, basic logic was done.
-    if ($name -like "variable_*") { Set-VARs -actionDate $actionDate -name $name }                      #to test, basic logic was done.
-    if ($name -like "shortcut_*") { Set-Shortcut -actionDate $actionDate -name $name }                  #started but need to be done from sratch.
-    if ($name -like "if_*") { Set-ifStatement -actionDate $actionDate -name $name }                     #todo
-    if ($name -like "appvCG_*") { Set-APPVCG -actionDate $actionDate -name $name }                      #todo
-    if ($name -like "tag_*") { Set-TAG -actionDate $actionDate -name $name }                            #todo
-    if ($name -like "window_*") { Set-Window -actionDate $actionDate -name $name }                      #todo
-      <# 
-      if ($Name -eq "GETREG") { $RC = Get-Registry -actionName $Action -Data $Data } 
-      if ($Name -eq "MSIVersion") { $RC = Get-MSIVersion -actionName $Action -Data $Data } 
-      #>
+      if ($name -like "msi_*") { Set-MSI -actionDate $actionDate -name $name }                            #Basic tests: ok.
+      if ($name -like "directory_*") { Set-Directory -actionDate $actionDate -name $name }                #Basic tests: ok.
+      if ($name -like "script_*") { Set-Script -actionDate $actionDate -name $name }                      #Basic tests: ok.
+      if ($name -like "sleep_*") { Set-Sleep -actionDate $actionDate -name $name }                        #Basic tests: ok.
+      if ($name -like "archive_*") { Set-Archive -actionDate $actionDate -name $name }                    #Basic tests: ok. 
+      if ($name -like "dll_*") { Set-DLL -actionDate $actionDate -name $name }                            #Basic tests: ok.
+      if ($name -like "winfeature_*") { Set-WinFeature -actionDate $actionDate -name $name }              #Basic tests: ok.
+      if ($name -like "file_*") { Set-File -actionDate $actionDate -name $name }                          #Basic tests: ok. Need to add: move, add, edit, check.
+      if ($name -like "msix_*") { Set-MSIX -actionDate $actionDate -name $name }                          #to test, basic logic was done.
+      if ($name -like "exe_*") { Set-EXE -actionDate $actionDate -name $name }                            #to test, basic logic was done. Need to add version check.
+      if ($name -like "appv_*") { Set-APPV -actionDate $actionDate -name $name }                          #to test, basic logic was done.
+      if ($name -like "service_*") { Set-Services -actionDate $actionDate -name $name }                   #to test, basic logic was done.
+      if ($name -like "registry_*") { Set-Registry -actionDate $actionDate -name $name }                  #to test, basic logic was done.
+      if ($name -like "process_*") { Set-Process -actionDate $actionDate -name $name }                    #to test, basic logic was done. Only kill addedd.
+      if ($name -like "systemsettings_*") { Set-SysSettings -actionDate $actionDate -name $name }         #to test, basic logic was done. Need to change internal functions handling.
+      if ($name -like "unblockfiles_*") { Set-UnblockFiles -actionDate $actionDate -name $name }          #to test, basic logic was done.
+      if ($name -like "scheduledtask_*") { Set-ScheduledTask -actionDate $actionDate -name $name }        #to test, basic logic was done. Need to add: new, set.
+      if ($name -like "detectionmethod_*") { Set-DetectionMethod -actionDate $actionDate -name $name }    #to test, basic logic was done.
+      if ($name -like "pins_*") { Set-Pin -actionDate $actionDate -name $name }                           #to test, basic logic was done.
+      if ($name -like "office_*") { Set-MSOffice -actionDate $actionDate -name $name }                    #to test, basic logic was done.
+      if ($name -like "activesetup_*") { Set-ActiveSetups -actionDate $actionDate -name $name }           #to test, basic logic was done.
+      if ($name -like "permissions_*") { Set-Permissions -actionDate $actionDate -name $name }            #to test, basic logic was done.
+      if ($name -like "variable_*") { Set-VARs -actionDate $actionDate -name $name }                      #to test, basic logic was done.
+      if ($name -like "shortcut_*") { Set-Shortcut -actionDate $actionDate -name $name }                  #started but need to be done from sratch.
+      if ($name -like "if_*") { Set-ifStatement -actionDate $actionDate -name $name }                     #todo
+      if ($name -like "appvCG_*") { Set-APPVCG -actionDate $actionDate -name $name }                      #todo
+      if ($name -like "tag_*") { Set-TAG -actionDate $actionDate -name $name }                            #todo
+      if ($name -like "window_*") { Set-Window -actionDate $actionDate -name $name }                      #todo
+      if ($Name -like "getreg_") { $RC = Get-Registry -actionDate $actionDate -name $name }               #todo
+      if ($Name -like "getmsiver_") { $RC = Get-MSIVersion -actionDate $actionDate -name $name }          #todo
     }
   } 
-
   Write-Log -Message "Ending: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -104,6 +101,7 @@ Function Set-MSI {
 
   Write-Log -Message "Starting: $($MyInvocation.MyCommand)/$($actionDate.$name.appName)." -Source $deployAppScriptFriendlyName
 
+  $action = $actionDate.$name.action
   $appName = $actionDate.$name.appName
   $appVer = $actionDate.$name.appVer
   $msifile = $actionDate.$name.msifile
@@ -122,7 +120,7 @@ Function Set-MSI {
   $processName = Set-FullStringsFromVars -VarToCheck $processName
   $params = Set-FullStringsFromVars -VarToCheck $params
 
-  if ($actionDate.$name.action.ToUpper() -eq "ADD") {
+  if ($action.ToUpper() -eq "ADD") {
     $msifiles = Get-MultiData -SrcData $msifile -PreData $SourcePath
     $mstFiles = Get-MultiData -SrcData $mstFile -PreData $SourcePath
     $mspFiles = Get-MultiData -SrcData $mspFile -PreData $SourcePath	
@@ -184,7 +182,7 @@ Function Set-MSI {
       }
     }
  
-  } elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
+  } elseif ($action.ToUpper() -eq "REMOVE") {
     $GUIDs = Get-MultiData -SrcData $GUID
     $appsVer = Get-MultiData -SrcData $appVer
 
@@ -251,6 +249,7 @@ Function Set-DLL {
 
   Write-Log -Message "Starting: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
 
+  $action = $actionDate.$name.action
   $DllFile = $actionDate.$name.dllFile
   $DllPath = $actionDate.$name.dllPath
   $x = 0
@@ -276,7 +275,7 @@ Function Set-DLL {
       elseif (($DllPaths[$x] -ne '') -and (-not ([string]::IsNullOrEmpty($DllPaths[$x])))) { $dllFullPath = "$($DllPaths[$x])\$DllFile" }
       Else { $dllFullPath = "$SourcePath\$DllFile" }
 
-      if ($actionDate.$name.action.ToUpper() -eq "REMOVE") { 
+      if ($action.ToUpper() -eq "REMOVE") { 
         Test-ifParamFileExist -path $dllFullPath
         regsvr32 /s /u $dllFullPath 
       
@@ -289,7 +288,7 @@ Function Set-DLL {
           5 {Write-Log -Message "Unregistration $dllFullPath failed. DllUnregisterServer function failed. RC = 5."}
           Default { Write-Log -Message "Unregistration $dllFullPath status unknown."}
         }
-      } Elseif ($actionDate.$name.action.ToUpper() -eq "ADD") { 
+      } Elseif ($action.ToUpper() -eq "ADD") { 
         Test-ifParamFileExist -path $dllFullPath
         regsvr32 /s $dllFullPath
           
@@ -338,6 +337,7 @@ Function Set-Archive {
   
   Write-Log -Message "Current disc space: $discSpace" -Source $deployAppScriptFriendlyName
 
+  $action = $actionDate.$name.action
   $DirPath = $actionDate.$name.path
   $ArchName = $actionDate.$name.archName
   $TargetDir = $actionDate.$name.targetPath
@@ -356,7 +356,7 @@ Function Set-Archive {
       }
     }
 
-    if ($actionDate.$name.action.ToUpper() -eq "ADD") {
+    if ($action.ToUpper() -eq "ADD") {
       foreach ($dir in $DirsPath) {
         if ((Test-forArrays -arr1 $DirsPath -arr2 $ArchsName) -eq $True) { $zipName = $ArchsName[$x] }
         else { $zipName = "$ArchName" }
@@ -378,7 +378,7 @@ Function Set-Archive {
         }
         $x++
       }
-    } elseif ($actionDate.$name.action.ToUpper() -eq "UNPACK") {
+    } elseif ($action.ToUpper() -eq "UNPACK") {
       $TargetDir = Set-FullStringsFromVars -VarToCheck $TargetDir
 
       foreach ($dir in $DirsPath) {
@@ -430,6 +430,8 @@ Function Set-Services {
     $name
   )
 
+  $action = $actionDate.$name.action
+  
   $ServiceName = $actionDate.$name.serviceName
   $ServiceNames = Get-MultiData -SrcData $ServiceName
 
@@ -445,7 +447,7 @@ Function Set-Services {
   $x = 0
 
   foreach ($service in $ServiceNames) {
-    if($actionDate.$name.action.ToUpper() -eq "ADD") { 
+    if($action.ToUpper() -eq "ADD") { 
       $ServiceBinary = $ServiceBinarys[$x]
       $ServiceBinary = Set-FullStringsFromVars -VarToCheck $ServiceBinary
       $StartupType = $StartupTypes[$x]
@@ -470,16 +472,16 @@ Function Set-Services {
         }
       } 
     New-Service @params 
-    } elseif ($actionDate.$name.action.ToUpper() -eq "STOP") { if (Get-Service $service -ErrorAction SilentlyContinue) { Get-Service -Name $service | Set-Service -Status Stopped -PassThru -Force }
-    } elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
+    } elseif ($action.ToUpper() -eq "STOP") { if (Get-Service $service -ErrorAction SilentlyContinue) { Get-Service -Name $service | Set-Service -Status Stopped -PassThru -Force }
+    } elseif ($action.ToUpper() -eq "REMOVE") {
         if (Get-Service -Name $service -ErrorAction SilentlyContinue) {
           Write-Log -Message "Removing: $service."
           Stop-Service $service
           Get-CimInstance -ClassName Win32_Service -Filter "Name=$service" | Remove-CimInstance
         } else { Write-Log -Message "$service is not present, nothink to remove. Going to next step." }
-    } elseif ($actionDate.$name.action.ToUpper() -eq "START") { if (Get-Service $service -ErrorAction SilentlyContinue) { Get-Service -Name $service | Set-Service  -Status Running -PassThru }
-    } elseif ($actionDate.$name.action.ToUpper() -eq "PAUSE") { if (Get-Service $service -ErrorAction SilentlyContinue) {Get-Service -Name $service | Set-Service -Status Paused }
-    } elseif ($actionDate.$name.action.ToUpper() -eq "DISABLE") { if (Get-Service $service -ErrorAction SilentlyContinue) {Get-Service -Name $service | Set-Service -StartupType Disabled -PassThru }}
+    } elseif ($action.ToUpper() -eq "START") { if (Get-Service $service -ErrorAction SilentlyContinue) { Get-Service -Name $service | Set-Service  -Status Running -PassThru }
+    } elseif ($action.ToUpper() -eq "PAUSE") { if (Get-Service $service -ErrorAction SilentlyContinue) {Get-Service -Name $service | Set-Service -Status Paused }
+    } elseif ($action.ToUpper() -eq "DISABLE") { if (Get-Service $service -ErrorAction SilentlyContinue) {Get-Service -Name $service | Set-Service -StartupType Disabled -PassThru }}
     $x++
   }
 }
@@ -512,15 +514,17 @@ Function Set-Process {
     mode: "UNBLOCK"
  #>
 
+  $action = $actionDate.$name.action
+
   $ProcessName = $actionDate.$name.processName
   $ProcessesNames = Get-MultiData -SrcData $ProcessName
 
   $x = 0
 
   foreach ($proces in $ProcessesNames) {
-    if ($actionDate.$name.action.ToUpper() -eq "STOP") {
+    if ($action.ToUpper() -eq "STOP") {
 
-    } elseif ($actionDate.$name.action.ToUpper() -eq "KILL") {
+    } elseif ($action.ToUpper() -eq "KILL") {
       $ProcName = $proces.ToLower()
       $ProcName = $ProcName.Replace(".exe","")
       $KillProc = [System.Collections.ArrayList]@()
@@ -557,7 +561,7 @@ Function Set-Process {
           }
         }
       }
-    } elseif ($actionDate.$name.action.ToUpper() -eq "START") {  }
+    } elseif ($action.ToUpper() -eq "START") {  }
     $x++
   }  
 }
@@ -573,23 +577,25 @@ Function Set-SysSettings {
     $name
   )
 
+  $action = $actionDate.$name.action
+
   $mainValue = $actionDate.$name.mainValue
   $mainValues = Get-MultiData -SrcData $mainValue
 
-  if ($actionDate.$name.action.ToUpper() -eq "CULTURE") {
+  if ($action.ToUpper() -eq "CULTURE") {
     foreach ($value in $mainValues) {
       Write-Log -Message "Set new value for Culture: $value"
       Set-Culture -CultureInfo $value
     }
-  } elseif ($actionDate.$name.action.ToUpper() -eq "NETUSE") {
+  } elseif ($action.ToUpper() -eq "NETUSE") {
     foreach ($value in $mainValues) {
       Write-Log -Message "Set new value for NET USE: $value"
       NET USE $value
     }
-  } elseif ($actionDate.$name.action.ToUpper() -eq "REBOOT") {
+  } elseif ($action.ToUpper() -eq "REBOOT") {
     Write-Log -Message "Set shutdown /f /r /t $mainValue"
     shutdown /f /r /t $mainValue
-  } elseif ($actionDate.$name.action.ToUpper() -eq "CHROMEUPDATES") {
+  } elseif ($action.ToUpper() -eq "CHROMEUPDATES") {
     Write-Log -Message "Disabling Google Chrome Updates"
     
     $data = @{
@@ -641,6 +647,8 @@ Function Set-EXE {
     $name
   )
 
+  $action = $actionDate.$name.action
+
   $EXEFile = $actionDate.$name.exeFile
   $EXEFile = Set-FullStringsFromVars -VarToCheck $EXEFile
   $EXEFiles = Get-MultiData -SrcData $EXEFile
@@ -671,7 +679,7 @@ Function Set-EXE {
     if ($GUID -ne ' ') { $isInstalled = (Get-InstalledApplication -ProductCode $GUID).DisplayName }
     else { $isInstalled = " " }
 
-    if ($actionDate.$name.action.ToUpper() -eq "ADD") { $action = "ADD" } else { $action = "REMOVE" }
+    if ($action.ToUpper() -eq "ADD") { $action = "ADD" } else { $action = "REMOVE" }
     if (Test-forVariable -varName $isInstalled) { $isInstalled = $false } else { $isInstalled = $true }
       
     if ((($isInstalled -eq $false) -and ($action -eq "ADD")) -or (($isInstalled -eq $true) -and ($action -eq "REMOVE"))) { 
@@ -700,16 +708,18 @@ Function Set-WinFeature {
     $name
   )
 
+  $action = $actionDate.$name.action
+
   $FeatureName = $actionDate.$name.featureName
 
   if (!(Test-forVariable -varName $FeatureName)) {
     $FeatureNames = Get-MultiData -SrcData $FeatureName
 
     foreach ($feature in $FeatureNames) {
-      if ($actionDate.$name.action.ToUpper() -eq "ADD") {
+      if ($action.ToUpper() -eq "ADD") {
         Write-Log -Message "Enable-WindowsOptionalFeature -Online -FeatureName $feature -norestart -All"
         Enable-WindowsOptionalFeature -Online -FeatureName $feature -norestart -all
-      } Elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {   
+      } Elseif ($action.ToUpper() -eq "REMOVE") {   
         Write-Log -Message "Disable-WindowsOptionalFeature -Online -FeatureName $feature -norestart"
         Disable-WindowsOptionalFeature -Online -FeatureName $feature -norestart
       } 
@@ -757,6 +767,8 @@ Function Set-Registry {
     $name
   )
 
+  $action = $actionDate.$name.action
+
   $Key = $actionDate.$name.key
   $Key = Set-FullStringsFromVars -VarToCheck $Key
   $Keys = Get-MultiData -SrcData $Key
@@ -766,7 +778,7 @@ Function Set-Registry {
   $Value = $actionDate.$name.value
 
   if ($Key.ToUpper() -like "*.REG") {
-    if ($actionDate.$name.action.ToUpper() -eq "ADD") {
+    if ($action.ToUpper() -eq "ADD") {
       foreach ($reg in $Keys) {
         $keyPath = Set-RelativePath -path $reg
         Test-ifParamFileExist -path $keyPath
@@ -796,7 +808,7 @@ Function Set-Registry {
       $Key = Convert-RegistryPath -Key $Key
       Write-Log -Message "Set-Registry will proceed with: $Key."
 
-      if (($actionDate.$name.action.ToUpper() -eq "ADD") -or ((Test-Path -Path $Key) -and ($actionDate.$name.action.ToUpper() -eq "CHANGE"))) {
+      if (($action.ToUpper() -eq "ADD") -or ((Test-Path -Path $Key) -and ($action.ToUpper() -eq "CHANGE"))) {
         if (($Key -like "Registry::HKCU*") -or ($Key -like "Registry::HKEY_CURRENT_USER*") -or ($Key -like "Registry::HKEY_USERS*") -or ($Key -like "Registry::HKU*")) {
           Write-Log -Message "Will edit users registry."
 
@@ -827,7 +839,7 @@ Function Set-Registry {
           }
         }
       } 
-    } elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
+    } elseif ($action.ToUpper() -eq "REMOVE") {
       foreach ($reg in $Keys) {
         if (($reg -like "Registry::HKCU*") -or ($reg -like "Registry::HKEY_CURRENT_USER*") -or ($reg -like "Registry::HKEY_USERS*") -or ($reg -like "Registry::HKU*")) {
           Write-Log -Message "Will edit users registry."
@@ -860,12 +872,14 @@ Function Set-ScheduledTask {
     $name
   )
 
+  $action = $actionDate.$name.action
+
   $TaskName = $actionDate.$name.taskName
   $TasksNames = Get-MultiData -SrcData $TaskName
     
-  if ($actionDate.$name.action.ToUpper() -eq "NEW") { }
-  elseif ($actionDate.$name.action.ToUpper() -eq "SET") { }
-  elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
+  if ($action.ToUpper() -eq "NEW") { }
+  elseif ($action.ToUpper() -eq "SET") { }
+  elseif ($action.ToUpper() -eq "REMOVE") {
     foreach ($task in $TasksNames) {
       if(Get-ScheduledTask $task -ErrorAction Ignore) { 
         Write-Log -Message "Removing Scheduled Task: $task."
@@ -886,11 +900,13 @@ Function Set-DUMMYFunction {
     $name
   )
 
-  if ($actionDate.$name.action.ToUpper() -eq "ADD") {
-  } elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
-  } elseif ($actionDate.$name.action.ToUpper() -eq "COPY") {
-  } elseif ($actionDate.$name.action.ToUpper() -eq "MOVE") {
-  } elseif ($actionDate.$name.action.ToUpper() -eq "EDIT") {
+  $action = $actionDate.$name.action
+
+  if ($action.ToUpper() -eq "ADD") {
+  } elseif ($action.ToUpper() -eq "REMOVE") {
+  } elseif ($action.ToUpper() -eq "COPY") {
+  } elseif ($action.ToUpper() -eq "MOVE") {
+  } elseif ($action.ToUpper() -eq "EDIT") {
   }
   
 }
@@ -905,6 +921,8 @@ Function Set-Pin {
     [Parameter(Mandatory = $True)]
     $name
   )
+
+  $action = $actionDate.$name.action
 
   $FilePath = $actionDate.$name.filePath
   $FilePaths = Get-MultiData -SrcData $FilePath
@@ -932,24 +950,24 @@ Function Set-Pin {
               
         Write-Log -Message "FilePath - $file "
 
-        if ($actionDate.$name.action.ToUpper() -eq "ADD") {
+        if ($action.ToUpper() -eq "ADD") {
           if ($type.ToUpper() -eq "TASKBAR") { Set-PinnedApplication -Action "PintoTaskbar" -FilePath $FilePath }
           elseif ($type.ToUpper() -eq "STARTMENU") { Set-PinnedApplication -Action "PintoStartMenu" -FilePath $FilePath }
           else {}
         }
-        if ($actionDate.$name.action.ToUpper() -eq "REMOVE") { 
+        if ($action.ToUpper() -eq "REMOVE") { 
           if ($type.ToUpper() -eq "TASKBAR") { Set-PinnedApplication -Action "UnpinfromTaskbar" -FilePath $FilePath }
           elseif ($type.ToUpper() -eq "STARTMENU") { Set-PinnedApplication -Action "UnpinfromStartMenu" -FilePath $FilePath }
           else {}
         }  
       }
     } else {
-      if ($actionDate.$name.action.ToUpper() -eq "ADD") {
+      if ($action.ToUpper() -eq "ADD") {
         if ($type.ToUpper() -eq "TASKBAR") { Set-PinnedApplication -Action "PintoTaskbar" -FilePath $FilePath }
         elseif ($type.ToUpper() -eq "STARTMENU") { Set-PinnedApplication -Action "PintoStartMenu" -FilePath $FilePath }
         else {}
       }
-      if ($actionDate.$name.action.ToUpper() -eq "REMOVE") { 
+      if ($action.ToUpper() -eq "REMOVE") { 
         if ($type.ToUpper() -eq "TASKBAR") { Set-PinnedApplication -Action "UnpinfromTaskbar" -FilePath $FilePath }
         elseif ($type.ToUpper() -eq "STARTMENU") { Set-PinnedApplication -Action "UnpinfromStartMenu" -FilePath $FilePath }
         else {}
@@ -970,10 +988,14 @@ Function Set-Shortcut {
     $name
   )
 
-  <# if ($actionDate.$name.action.ToUpper() -eq "ADD") {
-  } elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
-  } elseif ($actionDate.$name.action.ToUpper() -eq "EDIT") {
+  $action = $actionDate.$name.action
+
+  if ($action.ToUpper() -eq "ADD") {
+  } elseif ($action.ToUpper() -eq "REMOVE") {
+  } elseif ($action.ToUpper() -eq "EDIT") {
   }
+
+  <#
 
   $LnkName = $Data[0]
   $LnkPath = $Data[1]
@@ -1038,6 +1060,8 @@ directory_4:
     
   Write-Log -Message "Starting: $($MyInvocation.MyCommand)/$($actionDate.$name.targetDir)." -Source $deployAppScriptFriendlyName
 
+  $action = $actionDate.$name.action
+
   $Directory = $actionDate.$name.targetDir
   $SrcDirectory = $actionDate.$name.sourceDir
 
@@ -1059,7 +1083,7 @@ directory_4:
   $mode = $actionDate.$name.mode
   if (!(Test-forVariable -varName $mode)) { $allModes = Get-MultiData -SrcData $mode }
 
-  if ($actionDate.$name.action.ToUpper() -eq "ADD") {
+  if ($action.ToUpper() -eq "ADD") {
     $x = 0
     foreach ($dir in $Dirs) {
       if ($isAllForce.Length -eq $Dirs.Length) { $localForce = $isAllForce[$x] }
@@ -1075,7 +1099,7 @@ directory_4:
       } else { Set-NewDirectory -path $dir -force $localForce }
       $x++
     }
-  } elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
+  } elseif ($action.ToUpper() -eq "REMOVE") {
     $x = 0
     foreach ($dir in $Dirs) {
       if ($allModes.Length -eq $Dirs.Length) { $dirMode = $allModes[$x] }
@@ -1160,7 +1184,7 @@ directory_4:
       }
       $x++
     }
-  } elseif ($actionDate.$name.action.ToUpper() -eq "COPY") {
+  } elseif ($action.ToUpper() -eq "COPY") {
     $x = 0
     foreach ($OldDir in $SrcDirs) {
       if ($SrcDirs.Length -eq $Dirs.Length) { $NewDir = $Dirs[$x] }
@@ -1188,7 +1212,7 @@ directory_4:
 
       $x++
     }
-  } elseif ($actionDate.$name.action.ToUpper() -eq "MOVE") {
+  } elseif ($action.ToUpper() -eq "MOVE") {
     $x = 0
     foreach ($OldDir in $SrcDirs) {
       if ($SrcDirs.Length -eq $Dirs.Length) { $NewDir = $Dirs[$x] }
@@ -1216,7 +1240,7 @@ directory_4:
       }
       $x++
     }
-  } elseif ($actionDate.$name.action.ToUpper() -eq "RENAME") {
+  } elseif ($action.ToUpper() -eq "RENAME") {
     Write-Log -Message "Rename folder: $Directory to: $newName."
 
     if ((get-item $Directory).PSIsContainer) { $oldFolderName = Split-Path $Directory -Leaf } 
@@ -1418,6 +1442,8 @@ file_:
   $forAllUsers = $False
   $x = 0
 
+  $action = $actionDate.$name.action
+
   $OldDir = $actionDate.$name.inPath
   $NewDir = $actionDate.$name.outPath
   $FileName = $actionDate.$name.fileName
@@ -1436,7 +1462,7 @@ file_:
   if (Test-forVariable -varName $isExit) { $isExit = "noExit" }
 
 
-  if ($actionDate.$name.action.ToUpper() -eq "COPY") {
+  if ($action.ToUpper() -eq "COPY") {
     foreach ($file in $FileNames) {
       $FileName = $file
       $Directory = $OldDir
@@ -1498,7 +1524,7 @@ file_:
       }
       $x++
     }
-  } elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
+  } elseif ($action.ToUpper() -eq "REMOVE") {
     foreach ($file in $FileNames) {
       $FileName = $file
       $Directory = $NewDir
@@ -1528,7 +1554,7 @@ file_:
         }
       }
     }
-  } elseif ($actionDate.$name.action.ToUpper() -eq "RENAME") {
+  } elseif ($action.ToUpper() -eq "RENAME") {
     if ((Test-forArrays -arr1 $FileNames -arr2 $NewFileNames) -eq $True) {
       foreach ($file in $FileNames) {
         $FileName = $file
@@ -1557,10 +1583,10 @@ file_:
       Write-Log -Message "Script failed, diffrent number of files in parameteres in  $($MyInvocation.MyCommand)" -Severity 3 -Source $deployAppScriptFriendlyName
       Exit-Script -ExitCode $Global:RCMissingParameter
     }
-  } elseif ($actionDate.$name.action.ToUpper() -eq "MOVE") {
-  } elseif ($actionDate.$name.action.ToUpper() -eq "ADD") {
-  } elseif ($actionDate.$name.action.ToUpper() -eq "EDIT") {
-  } elseif ($actionDate.$name.action.ToUpper() -eq "CHECK") {
+  } elseif ($action.ToUpper() -eq "MOVE") {
+  } elseif ($action.ToUpper() -eq "ADD") {
+  } elseif ($action.ToUpper() -eq "EDIT") {
+  } elseif ($action.ToUpper() -eq "CHECK") {
   }
 
 }
@@ -1583,7 +1609,6 @@ Function Set-DetectionMethod {
   $FileResult     = 0
   $RegResult      = 0
   $ExitScript     = $False
-
 
   if (Test-forVariable -varName $actionDate.$name.exitCode) { $ExitCodeVarName = 0 }
   else { $ExitCodeVarName = $actionDate.$name.exitCode }
@@ -1801,6 +1826,8 @@ Function Set-MSIX {
     $name
   )
 
+  $action = $actionDate.$name.action
+
   $MSIXFile = $actionDate.$name.file
   $MSIXName = $actionDate.$name.name
   $MSIXContext = $actionDate.$name.context
@@ -1810,7 +1837,7 @@ Function Set-MSIX {
 
   $x = 0
     
-  if ($actionDate.$name.action.ToUpper() -eq "ADD") {
+  if ($action.ToUpper() -eq "ADD") {
     $MSIXFiles = Get-MultiData -SrcData $MSIXFile
     foreach ($msix in $MSIXFiles) {
       $msix = Set-FullStringsFromVars -VarToCheck $msix 
@@ -1818,7 +1845,7 @@ Function Set-MSIX {
       Test-ifParamFileExist -path $msix
       Add-AppPackage -path "$msix"
     }
-  } Elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE"){
+  } Elseif ($action.ToUpper() -eq "REMOVE"){
     $MSIXNames = Get-MultiData -SrcData $MSIXName
     $MSIXsContext = Get-MultiData -SrcData $MSIXContext
     foreach ($name in $MSIXNames) {
@@ -1831,7 +1858,7 @@ Function Set-MSIX {
       }
       $x++
     }
-  } Elseif ($actionDate.$name.action.ToUpper() -eq "MOVE"){
+  } Elseif ($action.ToUpper() -eq "MOVE"){
     $MSIXNames = Get-MultiData -SrcData $MSIXName
     $VolumeNames = Get-MultiData -SrcData $VolumeName
     foreach ($name in $MSIXNames) {
@@ -1843,7 +1870,7 @@ Function Set-MSIX {
       }
       $x++
     }  
-  } Elseif ($actionDate.$name.action.ToUpper() -eq "RUN"){
+  } Elseif ($action.ToUpper() -eq "RUN"){
     $MSIXNames = Get-MultiData -SrcData $MSIXName
     $AppIDs = Get-MultiData -SrcData $AppID
     $CMDsToRun = Get-MultiData -SrcData $CMDToRun
@@ -1873,6 +1900,8 @@ Function Set-APPV {
     $name
   )
 
+  $action = $actionDate.$name.action
+
   $AppVFile = $actionDate.$name.file
   $Context = $actionDate.$name.context
   $LogType = $actionDate.$name.logType
@@ -1880,7 +1909,7 @@ Function Set-APPV {
 
   $x = 0
 
-  if ($actionDate.$name.action.ToUpper() -eq "ADD") {
+  if ($action.ToUpper() -eq "ADD") {
     $AppVFiles = Get-MultiData -SrcData $AppVFile
     $Contexts = Get-MultiData -SrcData $Context
     $LogTypes = Get-MultiData -SrcData $LogType
@@ -1899,7 +1928,7 @@ Function Set-APPV {
       }
       $x++
     }
-  } elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
+  } elseif ($action.ToUpper() -eq "REMOVE") {
     $AppVPKGNames = Get-MultiData -SrcData $AppVPKGName
     foreach ($appv in $AppVPKGNames) { Get-AppvClientPackage -Name $AppVPKGName | Stop-AppvClientPackage | Remove-AppvClientPackage }
   }
@@ -1922,6 +1951,8 @@ Function Set-ActiveSetups {
 
   Write-Log -Message "Starting: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
 
+  $action = $actionDate.$name.action
+
   $Executable = $actionDate.$name.executable
   $Arguments = $actionDate.$name.parameters
   $Description = $actionDate.$name.description
@@ -1930,14 +1961,14 @@ Function Set-ActiveSetups {
   $AS32B = "SOFTWARE\Wow6432Node\Microsoft\Active Setup\Installed Components\"
   $AS64B = "SOFTWARE\Microsoft\Active Setup\Installed Components\"
   
-  if ($actionDate.$name.action.ToUpper() -eq "ADD") {
+  if ($action.ToUpper() -eq "ADD") {
     Write-Log -Message "Will ADD Active Setup with: $Executable $Arguments." -Source $deployAppScriptFriendlyName
     
     $Executable = Set-FullStringsFromVars -VarToCheck $Executable
     $Arguments = Set-FullStringsFromVars -VarToCheck $Arguments
     if (Test-forVariable -varName $Arguments) { $Arguments = "" }
     Set-ActiveSetup -StubExePath $Executable -Arguments $Arguments -Description $Description -Key $Key -Version $(get-date -f ddyHHmmss)
-  } elseif ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
+  } elseif ($action.ToUpper() -eq "REMOVE") {
     $Keys = Get-MultiData -SrcData $Key
     foreach ($KeyVar in $Keys) {
       Write-Log -Message "Will REMOVE Active Setup: $KeyVar." -Source $deployAppScriptFriendlyName
@@ -2009,6 +2040,8 @@ Function Set-VARs {
 
   Write-Log -Message "Starting: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
 
+  $action = $actionDate.$name.action
+
   $VarName = $actionDate.$name.path
   $VarValue = $actionDate.$name.path
   $VarType = $actionDate.$name.path
@@ -2021,7 +2054,7 @@ Function Set-VARs {
   $x = 0
 
   foreach ($Name in $VarNames) {
-    if ((-not(Test-forVariable -varName $VarValue)) -and ($actionDate.$name.action.ToUpper() -eq "ADD")) {
+    if ((-not(Test-forVariable -varName $VarValue)) -and ($action.ToUpper() -eq "ADD")) {
       if ((Test-forArrays -arr1 $VarNames -arr2 $VarValues) -eq $True) {
         $Value = $VarValues[$x]
       } else { 
@@ -2035,7 +2068,7 @@ Function Set-VARs {
       else { $Context = $VarContext }
     } 
 
-    if ($actionDate.$name.action.ToUpper() -eq "ADD") {
+    if ($action.ToUpper() -eq "ADD") {
       if ($VarType.ToUpper() -eq 'ENV') {
         Write-Log -Message "Adding System variable: $Name => $Value in $Context context." -Source $deployAppScriptFriendlyName
         if (($Context.ToUpper() -eq 'MACHINE') -or ($Context -eq 'System')) { [System.Environment]::SetEnvironmentVariable($Name, $Value, [System.EnvironmentVariableTarget]::Machine) }
@@ -2046,7 +2079,7 @@ Function Set-VARs {
         Remove-Variable -Name $Name -Scope "Global"
         New-Variable -Name $Name -Value $Value -Scope "Global"
       }
-    } elseIf ($actionDate.$name.action.ToUpper() -eq "REMOVE") {   
+    } elseIf ($action.ToUpper() -eq "REMOVE") {   
       if ($VarType.ToUpper() -eq 'ENV') {
         Write-Log -Message "Removing System variable: $Name in $Context context." -Source $deployAppScriptFriendlyName
         if (($Context.ToUpper() -eq 'MACHINE') -or ($Context -eq 'System')) { [System.Environment]::SetEnvironmentVariable($Name, $null, [System.EnvironmentVariableTarget]::Machine) }
@@ -2075,6 +2108,8 @@ Function Set-Tags {
     $Action = "ADD"
   )
 
+  $action = $actionDate.$name.action
+
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2100,6 +2135,8 @@ Function Set-MSOffice {
   $products = @("VisioProRetail","O365ProPlusRetail")
   $EXEOTCFile = "$env:programfiles\$officeToClick"
 
+  $action = $actionDate.$name.action
+
   $PkgGUID = $actionDate.$name.GUID
   $LangCode = $actionDate.$name.langugeCode
   $FamVer = $actionDate.$name.version
@@ -2109,7 +2146,7 @@ Function Set-MSOffice {
   $EXEFile = $actionDate.$name.exeFile
   $XMLFile = $actionDate.$name.xmlFile
 
-  if ($actionDate.$name.action.ToUpper() -eq "REMOVE") {
+  if ($action.ToUpper() -eq "REMOVE") {
     Write-Log -Message "Will uninstall MS Office."
     Write-Log -Message "MS Office processes wil be check and killed: $isKillProcess."
     
@@ -2126,7 +2163,7 @@ Function Set-MSOffice {
         Execute-Process -Path $EXEOTCFile -Parameters $Params -WindowStyle 'Hidden'
       }   
     } else { Write-Log -Message "Office $regGUID is not installed, going to next step." }
-  } elseIf ($actionDate.$name.action.ToUpper() -eq "ADD") {
+  } elseIf ($action.ToUpper() -eq "ADD") {
     Write-Log -Message "Will install MS Office."
     $EXEFile = Set-FullStringsFromVars -VarToCheck $EXEFile
     $EXEFile = Set-RelativePath -path $EXEFile
@@ -2141,7 +2178,7 @@ Function Set-MSOffice {
     $Params = "/configure "+'"'+$XMLFile+'"'
 
     Execute-Process -Path "$EXEFile" -Parameters $Params -WindowStyle 'Hidden'
-  } elseIf ($actionDate.$name.action.ToUpper() -eq "CHANGE") {
+  } elseIf ($action.ToUpper() -eq "CHANGE") {
     if ($Module.ToLower() -eq "teams") {
       Write-Log -Message "Will uninstall MS Teams."
       if (Test-forVariable -varName $PkgGUID) { $PkgGUID = "{39AF0813-FA7B-4860-ADBE-93B9B214B914}" }
@@ -2185,7 +2222,6 @@ Function Set-FullStringsFromVars {
     $tempered = $False
     $VarToCheckBak  = $VarToCheck
     $VarToCheck     = $VarToCheck.ToLower()
-
 
     if (Get-IsToChange -VarToTest "%programdata%" -VarToChange $VarToCheckBak) { $VarToCheck = $VarToCheckBak.Replace("%programdata%",$ProgramData); $tempered = $True }
     if (Get-IsToChange -VarToTest "%logfiles%" -VarToChange $VarToCheck) { $VarToCheck = $VarToCheck.Replace("%logfiles%",$env:LOGFILES); $tempered = $True }
