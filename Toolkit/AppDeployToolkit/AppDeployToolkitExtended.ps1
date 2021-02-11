@@ -31,6 +31,8 @@ Function Set-YAMLActions {
 
   Write-Log -Message "Starting: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
   
+  $RC = 0
+
   if (($yamlData -ne "") -and ($yamlData -ne " ") -and ($null -ne $yamlData) -and ($empty -ne $yamlData)) {
     $yamlData.keys | ForEach-Object {
       $name = $_
@@ -45,10 +47,10 @@ Function Set-YAMLActions {
       if ($name -like "archive_*") { Set-Archive -actionDate $actionDate -name $name }                    #Basic tests: ok. 
       if ($name -like "dll_*") { Set-DLL -actionDate $actionDate -name $name }                            #Basic tests: ok.
       if ($name -like "winfeature_*") { Set-WinFeature -actionDate $actionDate -name $name }              #Basic tests: ok.
+      if ($name -like "appv_*") { Set-APPV -actionDate $actionDate -name $name }                          #Basic tests: ok.
+      if ($name -like "msix_*") { Set-MSIX -actionDate $actionDate -name $name }                          #Basic tests: ok.
       if ($name -like "file_*") { Set-File -actionDate $actionDate -name $name }                          #Basic tests: ok. Need to add: move, add, edit, check.
-      if ($name -like "msix_*") { Set-MSIX -actionDate $actionDate -name $name }                          #to test, basic logic was done.
       if ($name -like "exe_*") { Set-EXE -actionDate $actionDate -name $name }                            #to test, basic logic was done. Need to add version check.
-      if ($name -like "appv_*") { Set-APPV -actionDate $actionDate -name $name }                          #to test, basic logic was done.
       if ($name -like "service_*") { Set-Services -actionDate $actionDate -name $name }                   #to test, basic logic was done.
       if ($name -like "registry_*") { Set-Registry -actionDate $actionDate -name $name }                  #to test, basic logic was done.
       if ($name -like "process_*") { Set-Process -actionDate $actionDate -name $name }                    #to test, basic logic was done. Only kill addedd.
@@ -70,6 +72,8 @@ Function Set-YAMLActions {
       if ($Name -like "getmsiver_") { $RC = Get-MSIVersion -actionDate $actionDate -name $name }          #todo
     }
   } 
+
+  Return $RC
   Write-Log -Message "Ending: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1826,6 +1830,8 @@ Function Set-MSIX {
     $name
   )
 
+  Write-Log -Message "Starting: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
+
   $action = $actionDate.$name.action
 
   $MSIXFile = $actionDate.$name.file
@@ -1843,26 +1849,28 @@ Function Set-MSIX {
       $msix = Set-FullStringsFromVars -VarToCheck $msix 
       if (($msix -like "\*") -or (((-not ($msix -like "*:\*")) -and (-not ($msix -like "*%*"))))) { $msix = "$SourcePath\$msix"}  
       Test-ifParamFileExist -path $msix
+      Write-Log -Message "Adding msix app: $msix." -Source $deployAppScriptFriendlyName
       Add-AppPackage -path "$msix"
     }
   } Elseif ($action.ToUpper() -eq "REMOVE"){
     $MSIXNames = Get-MultiData -SrcData $MSIXName
     $MSIXsContext = Get-MultiData -SrcData $MSIXContext
     foreach ($name in $MSIXNames) {
-      if ($MSIXNames.Length -eq $MSIXsContext.Length) {
-        if (Test-forVariable -varName $MSIXsContext[$x]) { Remove-AppPackage -Package $name }
-        else { Remove-AppPackage -Package $name $MSIXContext[$x] }
-      } else {
-        if (Test-forVariable -varName $MSIXContext) { Remove-AppPackage -Package $name }
-        else { Remove-AppPackage -Package $name $MSIXContext }
+      if ((Test-forArrays -arr1 $MSIXNames -arr2 $MSIXsContext) -eq $True) { 
+        if (!(Test-forVariable -varName $MSIXsContext[$x])) { $Context = $MSIXContext[$x] } 
+      } else { 
+        if (!(Test-forVariable -varName $MSIXContext)) { $Context = $MSIXContext }
       }
+      Write-Log -Message "Removing msix app: $name $Context." -Source $deployAppScriptFriendlyName
+      if (Test-forVariable -varName $Context) { Remove-AppPackage -Package $name }
+      else { Remove-AppPackage -Package $name $Context }
       $x++
     }
   } Elseif ($action.ToUpper() -eq "MOVE"){
     $MSIXNames = Get-MultiData -SrcData $MSIXName
     $VolumeNames = Get-MultiData -SrcData $VolumeName
     foreach ($name in $MSIXNames) {
-      if ($MSIXNames.Length -eq $MSIXsContext.Length) { Move-AppPackage -Package $name -Volume $VolumeNames[$x] }
+      if ((Test-forArrays -arr1 $MSIXNames -arr2 $MSIXsContext) -eq $True) { Move-AppPackage -Package $name -Volume $VolumeNames[$x] }
       elseif (Test-forVariable -varName $VolumeName) { Move-AppPackage -Package $name -Volume $VolumeName }
       else {  
         Write-Log -Message "Will Exit Script."
@@ -1875,13 +1883,16 @@ Function Set-MSIX {
     $AppIDs = Get-MultiData -SrcData $AppID
     $CMDsToRun = Get-MultiData -SrcData $CMDToRun
     foreach ($name in $MSIXNames) {
-      if (($MSIXNames.Length -eq $AppIDs.Length) -and ($MSIXNames.Length -eq $CMDsToRun.Length)) {
+      if (((Test-forArrays -arr1 $MSIXNames -arr2 $AppIDs) -eq $True) -and ((Test-forArrays -arr1 $MSIXNames -arr2 $CMDsToRun) -eq $True)) {
         $CMDsToRun[$x] = Set-FullStringsFromVars -VarToCheck $CMDsToRun[$x]
+        Write-Log -Message "Running msix app: $($CMDsToRun[$x])." -Source $deployAppScriptFriendlyName
         Invoke-CommandInDesktopPackage -PackageFamilyName $name -appid $AppIDs[$x] -command $CMDsToRun[$x] -preventbreakaway
       }
       $x++
     }
-  }       
+  }    
+  
+  Write-Log -Message "Ending: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
 
   #Move-AppPackage -Package "Caphyon.MyApp_1.0.0.0_neutral__8wekyb3d8bbwe" -Volume E:\
   #To dismount a volume you can use Dismount-AppVolume -Volume E:\
@@ -1899,6 +1910,8 @@ Function Set-APPV {
     [Parameter(Mandatory = $True)]
     $name
   )
+
+  Write-Log -Message "Starting: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
 
   $action = $actionDate.$name.action
 
@@ -1924,14 +1937,20 @@ Function Set-APPV {
         
         Test-ifParamFileExist -path $appv
         Get-AppvClientPackage -Name $AppVPKGNames[$x] | Stop-AppvClientPackage | Remove-AppvClientPackage
+        Write-Log -Message "Adding and publishing: $appv." -Source $deployAppScriptFriendlyName
         Add-AppvClientPackage -Path $appv | Publish-AppvClientPackage -Global | Mount-AppvClientPackage -Verbose	
       }
       $x++
     }
   } elseif ($action.ToUpper() -eq "REMOVE") {
     $AppVPKGNames = Get-MultiData -SrcData $AppVPKGName
-    foreach ($appv in $AppVPKGNames) { Get-AppvClientPackage -Name $AppVPKGName | Stop-AppvClientPackage | Remove-AppvClientPackage }
+    foreach ($appv in $AppVPKGNames) { 
+      Write-Log -Message "Stoping and removing appv: $AppVPKGName." -Source $deployAppScriptFriendlyName
+      Get-AppvClientPackage -Name $AppVPKGName | Stop-AppvClientPackage | Remove-AppvClientPackage 
+    }
   }
+  
+  Write-Log -Message "Ending: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2516,6 +2535,24 @@ Function Set-KillProcesses {
   }
   Write-Log -Message "All processes handled."
 
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Get-UserGroupSID {
+	param( 
+    [Parameter(Mandatory = $true)]
+    $name
+	)
+
+  $objUser = New-Object System.Security.Principal.NTAccount("$GroupUser")
+  $strSID = $objUser.Translate([System.Security.Principal.SecurityIdentifier])
+  $GroupUserSID = $strSID.Value
+
+  Write-Log -Message "$name SID is: $GroupUserSID."
+
+  Return $GroupUserSID
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
