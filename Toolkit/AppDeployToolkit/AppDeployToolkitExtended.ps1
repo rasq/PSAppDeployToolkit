@@ -2028,8 +2028,7 @@ Function Set-Permissions {
   $path = Set-RelativePath -path $path
 
   $CmdToRun = "icacls $path /reset /t /c"
-  $Result = Invoke-Expression -Command:$CmdToRun
-  if (($Result -eq "null") -or ([string]::IsNullOrEmpty($Result))) { Write-Log -Message "$Result" }
+  Set-customCMD -CmdToRun $CmdToRun 
 
   $acl = Get-Acl -Path "$path"
   $acl.SetAccessRuleProtection($true,$false)
@@ -2109,6 +2108,38 @@ Function Set-VARs {
         Remove-Variable -Name $Name -Scope "Global" }
     } 
     $x++
+  }
+
+  Write-Log -Message "Ending: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-Window  {
+  param(
+    [Parameter(Mandatory = $True)]
+    $actionDate,
+    [Parameter(Mandatory = $True)]
+    $name
+  )
+
+  Write-Log -Message "Starting: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
+
+  $action = $actionDate.$name.action
+  $window = $actionDate.$name.window
+
+  If ($action.ToUpper() -eq "DISPLAY") { 
+    if ($window.ToUpper() -eq "PROGRESSBAR") { 
+      Show-InstallationProgress -StatusMessage 'Installation in Progress...' -TopMost $true
+    } elseif ($window.ToUpper() -eq "PROGRESSBAR") { 
+      Show-InstallationWelcome -CloseApps 'iexplore' -CloseAppsCountdown 60
+      Show-InstallationWelcome -CloseApps 'iexplore' -AllowDefer -DeferTimes 3 -CheckDiskSpace -PersistPrompt
+    }
+  } elseif ($action.ToUpper() -eq "HIDE") { 
+    if ($window.ToUpper() -eq "PROGRESSBAR") { 
+      Close-InstallationProgress
+    }
   }
 
   Write-Log -Message "Ending: $($MyInvocation.MyCommand)." -Source $deployAppScriptFriendlyName
@@ -2556,6 +2587,21 @@ Function Get-UserGroupSID {
 }
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Function Set-customCMD {
+  param(
+      [Parameter(Mandatory = $True)]
+      [String]$CmdToRun
+  )
+
+  Write-Log -Message "Starting CMD: $CmdToRun"
+  & cmd.exe /c $CmdToRun
+}
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  
+
+
 
 
 
